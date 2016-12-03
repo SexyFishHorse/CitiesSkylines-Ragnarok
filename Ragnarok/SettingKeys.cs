@@ -33,6 +33,8 @@
 
         public const string DisableNonDisasterFires = "DisableNonDisasterFires";
 
+        public const string DisableScenarioDisasters = "DisableScenarioDisasters";
+
         public const string DisableSinkholes = "DisableSinkholes";
 
         public const string DisableStructureCollapses = "DisableStructureCollapses";

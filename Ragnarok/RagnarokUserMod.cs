@@ -5,7 +5,6 @@
     using System.Reflection;
     using ICities;
     using Infrastructure;
-    using Infrastructure.UI;
     using JetBrains.Annotations;
     using Logger;
     using UnityEngine;
@@ -15,13 +14,6 @@
     public class RagnarokUserMod : UserModBase, IDisasterExtension, ILoadingExtension
     {
         public const string ModName = "Ragnarok";
-
-        private static readonly string[] AutoEvacuateValues =
-        {
-            "Disabled",
-            "Enabled - manual release",
-            "Enabled - auto release"
-        };
 
         private readonly ILogger logger;
 
@@ -36,6 +28,8 @@
             logger = LogManager.Instance.GetOrCreateLogger(ModName);
 
             logger.Info("Ragnarok created");
+
+            OptionsPanelManager = new OptionsPanelManager(logger);
         }
 
         public override string Description
@@ -54,16 +48,22 @@
             }
         }
 
+        public static void UpdateAutoFollowDisaster(ILogger logger)
+        {
+            if (DisasterManager.exists)
+            {
+                DisasterManager.instance.m_disableAutomaticFollow =
+                    !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster);
+
+                logger.Info("disableAutomaticFollow is " + DisasterManager.instance.m_disableAutomaticFollow);
+            }
+        }
+
         public void OnCreated(IDisaster disaster)
         {
             logger.Info("OnCreated " + disaster);
 
             disasterWrapper = (DisasterWrapper)disaster;
-
-            DisasterManager.instance.m_disableAutomaticFollow =
-                !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster);
-
-            logger.Info("disableautomaticfollow is " + DisasterManager.instance.m_disableAutomaticFollow);
 
             SetConvertionTable();
         }
@@ -83,10 +83,9 @@
 
             var settingKey = GetDisabledSettingKeyForDisasterType(disasterInfo.type);
 
-            if (settingKey == null)
+            if (string.IsNullOrEmpty(settingKey))
             {
-                logger.Info("No setting key for type");
-                return;
+                logger.Info("No setting key found");
             }
 
             if (ModConfig.Instance.GetSetting<bool>(settingKey))
@@ -163,15 +162,31 @@
 
         public void OnLevelLoaded(LoadMode mode)
         {
-            if ((mode != LoadMode.NewGame) || (mode != LoadMode.LoadGame))
+            var updateMode = (SimulationManager.UpdateMode)mode;
+
+            logger.Info("Level loaded: " + updateMode);
+
+            if ((updateMode != SimulationManager.UpdateMode.NewGameFromMap) &&
+                (updateMode != SimulationManager.UpdateMode.NewGameFromScenario) &&
+                (updateMode != SimulationManager.UpdateMode.LoadGame) && (updateMode != SimulationManager.UpdateMode.LoadScenario))
             {
                 return;
             }
 
+            if ((updateMode == SimulationManager.UpdateMode.NewGameFromScenario) ||
+                (updateMode == SimulationManager.UpdateMode.LoadScenario))
+            {
+                if (ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableScenarioDisasters))
+                {
+                    DisasterManager.instance.ClearAll();
+                }
+            }
+
             phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
 
-            BuildingManager.instance.m_firesDisabled =
-                ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires);
+            BuildingManager.instance.m_firesDisabled = ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires);
+
+            UpdateAutoFollowDisaster(logger);
         }
 
         public void OnLevelUnloading()
@@ -184,56 +199,6 @@
 
         void IDisasterExtension.OnReleased()
         {
-        }
-
-        protected override void ConfigureOptionsUi(IStronglyTypedUiHelper uiHelper)
-        {
-            var generalGroup = uiHelper.AddGroup("General");
-
-            generalGroup.AddCheckBox("Auto focus on disaster",
-                                     !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster),
-                                     OnDisableAutoFocusDisasterChanged);
-
-            var enabledDisastersGroup = uiHelper.AddGroup("Disable disasters");
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Forest fires", SettingKeys.DisableForestFires);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Earthquakes", SettingKeys.DisableEarthquakes);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Meteors", SettingKeys.DisableMeteors);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Sinkholes", SettingKeys.DisableSinkholes);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Structure collapses", SettingKeys.DisableStructureCollapses);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Structure fires", SettingKeys.DisableStructureFires);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Thunderstorms", SettingKeys.DisableThunderstorms);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Tornadoes", SettingKeys.DisableTornadoes);
-            AddEnabledDisasterCheckbox(enabledDisastersGroup, "Tsunamis", SettingKeys.DisableTsunamis);
-
-            enabledDisastersGroup.AddCheckBox("Non-disaster related fires",
-                                              ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires),
-                                              OnDisableNonDisasterFiresChanged);
-
-            var autoEvacuateGroup = uiHelper.AddGroup("Auto-evacuation behaviour");
-
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Forest fires", SettingKeys.AutoEvacuateForestFires);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Earthquakes", SettingKeys.AutoEvacuateEarthquake);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Meteors", SettingKeys.AutoEvacuateMeteors);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Sinkholes", SettingKeys.AutoEvacuateSinkholes);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Structure collapses", SettingKeys.AutoEvacuateStructureCollapses);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Structure fires", SettingKeys.AutoEvacuateStructureFires);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Thunderstorms", SettingKeys.AutoEvacuateThunderstorms);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Tornadoes", SettingKeys.AutoEvacuateTornadoes);
-            AddAutoEvacuateBehaviourDropDown(autoEvacuateGroup, "Tsunamis", SettingKeys.AutoEvacuateTsunamis);
-        }
-
-        private void AddAutoEvacuateBehaviourDropDown(StronglyTypedUiHelper autoEvacuateGroup, string label,
-                                                      string settingKey)
-        {
-            autoEvacuateGroup.AddDropDown(label, AutoEvacuateValues,
-                                          ModConfig.Instance.GetSetting<int>(settingKey),
-                                          sel => SaveSetting(settingKey, sel));
-        }
-
-        private void AddEnabledDisasterCheckbox(StronglyTypedUiHelper uiGroup, string label, string settingKey)
-        {
-            uiGroup.AddCheckBox(label, ModConfig.Instance.GetSetting<bool>(settingKey),
-                                isChecked => SaveSetting(settingKey, isChecked));
         }
 
         private string GetDisabledSettingKeyForDisasterType(DisasterType type)
@@ -265,6 +230,11 @@
 
         private bool IsEvacuating()
         {
+            if (phasePanel == null)
+            {
+                phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
+            }
+
             var field = phasePanel.GetType().GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
 
             var isEvacuating = (bool)field.GetValue(phasePanel);
@@ -272,35 +242,6 @@
             logger.Info("Is evacuating: " + isEvacuating);
 
             return isEvacuating;
-        }
-
-        private void OnDisableAutoFocusDisasterChanged(bool isChecked)
-        {
-            SaveSetting(SettingKeys.DisableAutofocusDisaster, isChecked);
-
-            if (DisasterManager.exists)
-            {
-                DisasterManager.instance.m_disableAutomaticFollow = !isChecked;
-
-                logger.Info("disableAutomaticFollow is " + DisasterManager.instance.m_disableAutomaticFollow);
-            }
-        }
-
-        private void OnDisableNonDisasterFiresChanged(bool isChecked)
-        {
-            SaveSetting(SettingKeys.DisableNonDisasterFires, isChecked);
-
-            if (BuildingManager.exists)
-            {
-                BuildingManager.instance.m_firesDisabled = isChecked;
-            }
-        }
-
-        private void SaveSetting(string settingKey, object value)
-        {
-            logger.Info("Saving setting {0} with value {1}", settingKey, value);
-
-            ModConfig.Instance.SaveSetting(settingKey, value);
         }
 
         private void SetConvertionTable()

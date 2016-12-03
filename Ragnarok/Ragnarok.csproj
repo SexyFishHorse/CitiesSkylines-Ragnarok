@@ -43,8 +43,8 @@
       <HintPath>..\packages\ICities.1.6.0.4\lib\ICities.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SexyFishHorse.CitiesSkylines.Infrastructure, Version=1.0.6181.26907, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SexyFishHorse.CitiesSkylines.Infrastructure.1.0.6181.26907\lib\net35\SexyFishHorse.CitiesSkylines.Infrastructure.dll</HintPath>
+    <Reference Include="SexyFishHorse.CitiesSkylines.Infrastructure, Version=1.0.6181.31702, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SexyFishHorse.CitiesSkylines.Infrastructure.1.0.6181.31702\lib\net35\SexyFishHorse.CitiesSkylines.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SexyFishHorse.CitiesSkylines.Logger, Version=1.0.6181.27071, Culture=neutral, processorArchitecture=MSIL">
@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ModConfig.cs" />
+    <Compile Include="OptionsPanelManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RagnarokUserMod.cs" />
     <Compile Include="SettingKeys.cs" />
