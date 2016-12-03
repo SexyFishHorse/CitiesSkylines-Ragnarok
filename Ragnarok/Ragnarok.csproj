@@ -43,12 +43,12 @@
       <HintPath>..\packages\ICities.1.6.0.4\lib\ICities.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SexyFishHorse.CitiesSkylines.Infrastructure, Version=1.0.6179.42129, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SexyFishHorse.CitiesSkylines.Infrastructure.1.0.6179.42129\lib\net35\SexyFishHorse.CitiesSkylines.Infrastructure.dll</HintPath>
+    <Reference Include="SexyFishHorse.CitiesSkylines.Infrastructure, Version=1.0.6181.26907, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SexyFishHorse.CitiesSkylines.Infrastructure.1.0.6181.26907\lib\net35\SexyFishHorse.CitiesSkylines.Infrastructure.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SexyFishHorse.CitiesSkylines.Logger, Version=1.0.6179.42032, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SexyFishHorse.CitiesSkylines.Logger.1.0.6179.42032\lib\net35\SexyFishHorse.CitiesSkylines.Logger.dll</HintPath>
+    <Reference Include="SexyFishHorse.CitiesSkylines.Logger, Version=1.0.6181.27071, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SexyFishHorse.CitiesSkylines.Logger.1.0.6181.27071\lib\net35\SexyFishHorse.CitiesSkylines.Logger.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
