@@ -64,6 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RagnarokUserMod.cs" />
+    <Compile Include="SettingKeys.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
