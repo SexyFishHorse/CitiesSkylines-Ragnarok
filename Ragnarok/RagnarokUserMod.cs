@@ -5,7 +5,6 @@
     using System.Reflection;
     using ICities;
     using Infrastructure;
-    using Infrastructure.Configuration;
     using Infrastructure.UI;
     using JetBrains.Annotations;
     using Logger;
@@ -15,7 +14,7 @@
     [UsedImplicitly]
     public class RagnarokUserMod : UserModBase, IDisasterExtension, ILoadingExtension
     {
-        private const string ModName = "Ragnarok";
+        public const string ModName = "Ragnarok";
 
         private static readonly string[] AutoEvacuateValues =
         {
@@ -31,11 +30,6 @@
         private DisasterWrapper disasterWrapper;
 
         private WarningPhasePanel phasePanel;
-
-        static RagnarokUserMod()
-        {
-            ConfigurationManager.Instance.Init(ModName);
-        }
 
         public RagnarokUserMod()
         {
@@ -64,10 +58,10 @@
         {
             logger.Info("OnCreated " + disaster);
 
-            disasterWrapper = (DisasterWrapper) disaster;
+            disasterWrapper = (DisasterWrapper)disaster;
 
             DisasterManager.instance.m_disableAutomaticFollow =
-                !ConfigurationManager.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster);
+                !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster);
 
             logger.Info("disableautomaticfollow is " + DisasterManager.instance.m_disableAutomaticFollow);
 
@@ -95,7 +89,7 @@
                 return;
             }
 
-            if (ConfigurationManager.Instance.GetSetting<bool>(settingKey))
+            if (ModConfig.Instance.GetSetting<bool>(settingKey))
             {
                 logger.Info("Deactivating disaster");
                 disasterWrapper.EndDisaster(disasterId);
@@ -177,7 +171,7 @@
             phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
 
             BuildingManager.instance.m_firesDisabled =
-                ConfigurationManager.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires);
+                ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires);
         }
 
         public void OnLevelUnloading()
@@ -197,7 +191,7 @@
             var generalGroup = uiHelper.AddGroup("General");
 
             generalGroup.AddCheckBox("Auto focus on disaster",
-                                     !ConfigurationManager.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster),
+                                     !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster),
                                      OnDisableAutoFocusDisasterChanged);
 
             var enabledDisastersGroup = uiHelper.AddGroup("Disable disasters");
@@ -212,7 +206,7 @@
             AddEnabledDisasterCheckbox(enabledDisastersGroup, "Tsunamis", SettingKeys.DisableTsunamis);
 
             enabledDisastersGroup.AddCheckBox("Non-disaster related fires",
-                                              ConfigurationManager.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires),
+                                              ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires),
                                               OnDisableNonDisasterFiresChanged);
 
             var autoEvacuateGroup = uiHelper.AddGroup("Auto-evacuation behaviour");
@@ -232,13 +226,13 @@
                                                       string settingKey)
         {
             autoEvacuateGroup.AddDropDown(label, AutoEvacuateValues,
-                                          ConfigurationManager.Instance.GetSetting<int>(settingKey),
+                                          ModConfig.Instance.GetSetting<int>(settingKey),
                                           sel => SaveSetting(settingKey, sel));
         }
 
         private void AddEnabledDisasterCheckbox(StronglyTypedUiHelper uiGroup, string label, string settingKey)
         {
-            uiGroup.AddCheckBox(label, ConfigurationManager.Instance.GetSetting<bool>(settingKey),
+            uiGroup.AddCheckBox(label, ModConfig.Instance.GetSetting<bool>(settingKey),
                                 isChecked => SaveSetting(settingKey, isChecked));
         }
 
@@ -273,7 +267,7 @@
         {
             var field = phasePanel.GetType().GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
 
-            var isEvacuating = (bool) field.GetValue(phasePanel);
+            var isEvacuating = (bool)field.GetValue(phasePanel);
 
             logger.Info("Is evacuating: " + isEvacuating);
 
@@ -306,7 +300,7 @@
         {
             logger.Info("Saving setting {0} with value {1}", settingKey, value);
 
-            ConfigurationManager.Instance.SaveSetting(settingKey, value);
+            ModConfig.Instance.SaveSetting(settingKey, value);
         }
 
         private void SetConvertionTable()
@@ -332,21 +326,21 @@
         {
             var settingKey = SettingKeys.AutoEvacuateSettingKeyMapping.Single(x => x.Key == disasterType).Value;
 
-            return ConfigurationManager.Instance.GetSetting<int>(settingKey) > 0;
+            return ModConfig.Instance.GetSetting<int>(settingKey) > 0;
         }
 
         private bool ShouldAutoRelease(DisasterType disasterType)
         {
             var settingKey = SettingKeys.AutoEvacuateSettingKeyMapping.Single(x => x.Key == disasterType).Value;
 
-            return ConfigurationManager.Instance.GetSetting<int>(settingKey) > 1;
+            return ModConfig.Instance.GetSetting<int>(settingKey) > 1;
         }
 
         private bool ShouldManualRelease(DisasterType disasterType)
         {
             var settingKey = SettingKeys.AutoEvacuateSettingKeyMapping.Single(x => x.Key == disasterType).Value;
 
-            return ConfigurationManager.Instance.GetSetting<int>(settingKey) == 1;
+            return ModConfig.Instance.GetSetting<int>(settingKey) == 1;
         }
     }
 }
