@@ -175,6 +175,13 @@
         private void OnDisableAutoFocusDisasterChanged(bool isChecked)
         {
             SaveSetting(SettingKeys.DisableAutofocusDisaster, isChecked);
+
+            if (DisasterManager.exists)
+            {
+                DisasterManager.instance.m_disableAutomaticFollow = !isChecked;
+
+                logger.Info("disableAutomaticFollow is " + DisasterManager.instance.m_disableAutomaticFollow);
+            }
         }
 
         private void SaveSetting(string settingKey, object value)
