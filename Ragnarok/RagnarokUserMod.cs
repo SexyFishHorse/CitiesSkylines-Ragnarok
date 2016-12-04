@@ -1,8 +1,10 @@
 ﻿namespace SexyFishHorse.CitiesSkylines.Ragnarok
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
+    using System.Threading;
     using ICities;
     using Infrastructure;
     using JetBrains.Annotations;
@@ -74,6 +76,42 @@
 
         public void OnDisasterActivated(ushort disasterId)
         {
+            try
+            {
+                var type = disasterWrapper.GetDisasterSettings(disasterId);
+                logger.Info("Disaster activated: " + type.name);
+
+                if (ModConfig.Instance.GetSetting<bool>(SettingKeys.PauseOnDisasterStart))
+                {
+                    new Thread(
+                        () =>
+                        {
+                            try
+                            {
+                                var pauseStart = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+
+                                while (DateTime.UtcNow < pauseStart)
+                                {
+                                }
+
+                                logger.Info("Pausing game");
+                                SimulationManager.instance.SimulationPaused = true;
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogException(ex);
+
+                                throw;
+                            }
+                        }).Start();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogException(ex);
+
+                throw;
+            }
         }
 
         public void OnDisasterCreated(ushort disasterId)

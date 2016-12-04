@@ -31,6 +31,11 @@
                 ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster),
                 OnAutoFocusDisasterChanged);
 
+            generalGroup.AddCheckBox(
+                "Pause on disaster start",
+                ModConfig.Instance.GetSetting<bool>(SettingKeys.PauseOnDisasterStart),
+                isChecked => SaveSetting(SettingKeys.PauseOnDisasterStart, isChecked));
+
             var nonDisasterFiresGroup = uiHelper.AddGroup("Non-disaster related fires");
             nonDisasterFiresGroup.AddCheckBox(
                 "Disable",

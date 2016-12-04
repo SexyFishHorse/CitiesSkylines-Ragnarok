@@ -47,6 +47,8 @@
 
         public const string DisableTsunamis = "DisableTsunamis";
 
+        public const string PauseOnDisasterStart = "PauseOnDisasterStart";
+
         public static readonly IDictionary<DisasterType, string> AutoEvacuateSettingKeyMapping = new Dictionary
             <DisasterType, string>
             {
