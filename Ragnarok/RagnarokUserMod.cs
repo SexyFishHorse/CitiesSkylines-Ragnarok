@@ -9,8 +9,6 @@
     using Infrastructure;
     using JetBrains.Annotations;
     using Logger;
-    using UnityEngine;
-    using ILogger = Logger.ILogger;
 
     [UsedImplicitly]
     public class RagnarokUserMod : UserModBase, IDisasterExtension, ILoadingExtension
@@ -21,7 +19,11 @@
 
         private readonly HashSet<ushort> manualReleaseDisasters = new HashSet<ushort>();
 
+        private FieldInfo convertionField;
+
         private DisasterWrapper disasterWrapper;
+
+        private FieldInfo evacuatingField;
 
         private WarningPhasePanel phasePanel;
 
@@ -52,22 +54,44 @@
 
         public static void UpdateAutoFollowDisaster(ILogger logger)
         {
-            if (DisasterManager.exists)
+            try
             {
-                DisasterManager.instance.m_disableAutomaticFollow =
-                    !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster);
+                if (DisasterManager.exists)
+                {
+                    DisasterManager.instance.m_disableAutomaticFollow =
+                        !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster);
 
-                logger.Info("disableAutomaticFollow is " + DisasterManager.instance.m_disableAutomaticFollow);
+                    logger.Info("disableAutomaticFollow is " + DisasterManager.instance.m_disableAutomaticFollow);
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogException(ex);
+
+                throw;
             }
         }
 
         public void OnCreated(IDisaster disaster)
         {
-            logger.Info("OnCreated " + disaster);
+            try
+            {
+                logger.Info("OnCreated " + disaster);
 
-            disasterWrapper = (DisasterWrapper)disaster;
+                disasterWrapper = (DisasterWrapper)disaster;
 
-            SetConvertionTable();
+                convertionField = disasterWrapper
+                    .GetType()
+                    .GetField("m_DisasterTypeToInfoConversion", BindingFlags.NonPublic | BindingFlags.Instance);
+
+                SetConvertionTable();
+            }
+            catch (Exception ex)
+            {
+                logger.LogException(ex);
+
+                throw;
+            }
         }
 
         public void OnCreated(ILoading loading)
@@ -116,77 +140,104 @@
 
         public void OnDisasterCreated(ushort disasterId)
         {
-            var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
-            logger.Info("Created disaster type {0} with name {1}", disasterInfo.type, disasterInfo.name);
-
-            var settingKey = GetDisabledSettingKeyForDisasterType(disasterInfo.type);
-
-            if (string.IsNullOrEmpty(settingKey))
+            try
             {
-                logger.Info("No setting key found");
+                var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
+                logger.Info("Created disaster type {0} with name {1}", disasterInfo.type, disasterInfo.name);
+
+                var settingKey = GetDisabledSettingKeyForDisasterType(disasterInfo.type);
+
+                if (string.IsNullOrEmpty(settingKey))
+                {
+                    logger.Info("No setting key found");
+                }
+
+                if (ModConfig.Instance.GetSetting<bool>(settingKey))
+                {
+                    logger.Info("Deactivating disaster");
+                    disasterWrapper.EndDisaster(disasterId);
+                }
             }
-
-            if (ModConfig.Instance.GetSetting<bool>(settingKey))
+            catch (Exception ex)
             {
-                logger.Info("Deactivating disaster");
-                disasterWrapper.EndDisaster(disasterId);
+                logger.LogException(ex);
+
+                throw;
             }
         }
 
         public void OnDisasterDeactivated(ushort disasterId)
         {
-            var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
-
-            logger.Info("Disaster {0} with name {1} over", disasterInfo.type, disasterInfo.name);
-
-            if (disasterInfo.type == DisasterType.Empty)
+            try
             {
-                return;
+                var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
+
+                logger.Info("Disaster {0} with name {1} over", disasterInfo.type, disasterInfo.name);
+
+                if (disasterInfo.type == DisasterType.Empty)
+                {
+                    return;
+                }
+
+                if (!IsEvacuating())
+                {
+                    logger.Info("Not evacuating. Clear list of active manual release disasters");
+                    manualReleaseDisasters.Clear();
+                    return;
+                }
+
+                if (ShouldAutoRelease(disasterInfo.type) && !manualReleaseDisasters.Any())
+                {
+                    logger.Info("Auto releasing citizens");
+                    DisasterManager.instance.EvacuateAll(true);
+                }
             }
-
-            if (!IsEvacuating())
+            catch (Exception ex)
             {
-                logger.Info("Not evacuating. Clear list of active manual release disasters");
-                manualReleaseDisasters.Clear();
-                return;
-            }
+                logger.LogException(ex);
 
-            if (ShouldAutoRelease(disasterInfo.type) && !manualReleaseDisasters.Any())
-            {
-                logger.Info("Auto releasing citizens");
-                DisasterManager.instance.EvacuateAll(true);
+                throw;
             }
         }
 
         public void OnDisasterDetected(ushort disasterId)
         {
-            var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
-
-            logger.Info("Detected {0} with name {1}", disasterInfo.type, disasterInfo.name);
-
-            if (disasterInfo.type == DisasterType.Empty)
+            try
             {
-                return;
+                var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
+
+                logger.Info("Detected {0} with name {1}", disasterInfo.type, disasterInfo.name);
+
+                if (disasterInfo.type == DisasterType.Empty)
+                {
+                    return;
+                }
+
+                if (ShouldAutoEvacuate(disasterInfo.type))
+                {
+                    logger.Info("Is auto-evacuate disaster");
+                    if (!IsEvacuating())
+                    {
+                        logger.Info("Starting evacuation");
+                        DisasterManager.instance.EvacuateAll(false);
+                    }
+                    else
+                    {
+                        logger.Info("Already evacuating");
+                    }
+
+                    if (ShouldManualRelease(disasterInfo.type))
+                    {
+                        logger.Info("Should be manually released");
+                        manualReleaseDisasters.Add(disasterId);
+                    }
+                }
             }
-
-            if (ShouldAutoEvacuate(disasterInfo.type))
+            catch (Exception ex)
             {
-                logger.Info("Is auto-evacuate disaster");
-                if (!IsEvacuating())
-                {
-                    logger.Info("Starting evacuation");
-                    DisasterManager.instance.EvacuateAll(false);
-                }
-                else
-                {
-                    logger.Info("Already evacuating");
-                }
+                logger.LogException(ex);
 
-                if (ShouldManualRelease(disasterInfo.type))
-                {
-                    logger.Info("Should be manually released");
-                    manualReleaseDisasters.Add(disasterId);
-                }
+                throw;
             }
         }
 
@@ -200,31 +251,40 @@
 
         public void OnLevelLoaded(LoadMode mode)
         {
-            var updateMode = (SimulationManager.UpdateMode)mode;
-
-            logger.Info("Level loaded: " + updateMode);
-
-            if ((updateMode != SimulationManager.UpdateMode.NewGameFromMap) &&
-                (updateMode != SimulationManager.UpdateMode.NewGameFromScenario) &&
-                (updateMode != SimulationManager.UpdateMode.LoadGame) && (updateMode != SimulationManager.UpdateMode.LoadScenario))
+            try
             {
-                return;
-            }
+                var updateMode = (SimulationManager.UpdateMode)mode;
 
-            if ((updateMode == SimulationManager.UpdateMode.NewGameFromScenario) ||
-                (updateMode == SimulationManager.UpdateMode.LoadScenario))
-            {
-                if (ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableScenarioDisasters))
+                logger.Info("Level loaded: " + updateMode);
+
+                if ((updateMode != SimulationManager.UpdateMode.NewGameFromMap) &&
+                    (updateMode != SimulationManager.UpdateMode.NewGameFromScenario) &&
+                    (updateMode != SimulationManager.UpdateMode.LoadGame) && (updateMode != SimulationManager.UpdateMode.LoadScenario))
                 {
-                    DisasterManager.instance.ClearAll();
+                    return;
                 }
+
+                if ((updateMode == SimulationManager.UpdateMode.NewGameFromScenario) ||
+                    (updateMode == SimulationManager.UpdateMode.LoadScenario))
+                {
+                    if (ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableScenarioDisasters))
+                    {
+                        DisasterManager.instance.ClearAll();
+                    }
+                }
+
+                FindPhasePanel();
+
+                BuildingManager.instance.m_firesDisabled = ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires);
+
+                UpdateAutoFollowDisaster(logger);
             }
+            catch (Exception ex)
+            {
+                logger.LogException(ex);
 
-            phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
-
-            BuildingManager.instance.m_firesDisabled = ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires);
-
-            UpdateAutoFollowDisaster(logger);
+                throw;
+            }
         }
 
         public void OnLevelUnloading()
@@ -237,6 +297,15 @@
 
         void IDisasterExtension.OnReleased()
         {
+        }
+
+        private void FindPhasePanel()
+        {
+            if (phasePanel == null)
+            {
+                phasePanel = UnityEngine.Object.FindObjectOfType<WarningPhasePanel>();
+                evacuatingField = phasePanel.GetType().GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
+            }
         }
 
         private string GetDisabledSettingKeyForDisasterType(DisasterType type)
@@ -268,14 +337,9 @@
 
         private bool IsEvacuating()
         {
-            if (phasePanel == null)
-            {
-                phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
-            }
+            FindPhasePanel();
 
-            var field = phasePanel.GetType().GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            var isEvacuating = (bool)field.GetValue(phasePanel);
+            var isEvacuating = (bool)evacuatingField.GetValue(phasePanel);
 
             logger.Info("Is evacuating: " + isEvacuating);
 
@@ -284,21 +348,29 @@
 
         private void SetConvertionTable()
         {
-            var field = disasterWrapper.GetType()
-                                       .GetField("m_DisasterTypeToInfoConversion",
-                                                 BindingFlags.NonPublic | BindingFlags.Instance);
+            var fieldValue = (Dictionary<DisasterType, DisasterInfo>)convertionField.GetValue(disasterWrapper);
 
-            var convertionDictionary = new Dictionary<DisasterType, DisasterInfo>();
-            convertionDictionary[DisasterType.Earthquake] = DisasterManager.FindDisasterInfo<EarthquakeAI>();
-            convertionDictionary[DisasterType.ForestFire] = DisasterManager.FindDisasterInfo<ForestFireAI>();
-            convertionDictionary[DisasterType.MeteorStrike] = DisasterManager.FindDisasterInfo<MeteorStrikeAI>();
-            convertionDictionary[DisasterType.ThunderStorm] = DisasterManager.FindDisasterInfo<ThunderStormAI>();
-            convertionDictionary[DisasterType.Tornado] = DisasterManager.FindDisasterInfo<TornadoAI>();
-            convertionDictionary[DisasterType.Tsunami] = DisasterManager.FindDisasterInfo<TsunamiAI>();
-            convertionDictionary[DisasterType.StructureCollapse] = DisasterManager.FindDisasterInfo<StructureCollapseAI>();
-            convertionDictionary[DisasterType.StructureFire] = DisasterManager.FindDisasterInfo<StructureFireAI>();
-            convertionDictionary[DisasterType.Sinkhole] = DisasterManager.FindDisasterInfo<SinkholeAI>();
-            field.SetValue(disasterWrapper, convertionDictionary);
+            if ((fieldValue == null) || !fieldValue.Any() || fieldValue.Any(x => x.Value == null))
+            {
+                logger.Info("rebuilding convertion table");
+                var convertionDictionary = new Dictionary<DisasterType, DisasterInfo>();
+                convertionDictionary[DisasterType.Earthquake] = DisasterManager.FindDisasterInfo<EarthquakeAI>();
+                convertionDictionary[DisasterType.ForestFire] = DisasterManager.FindDisasterInfo<ForestFireAI>();
+                convertionDictionary[DisasterType.MeteorStrike] = DisasterManager.FindDisasterInfo<MeteorStrikeAI>();
+                convertionDictionary[DisasterType.ThunderStorm] = DisasterManager.FindDisasterInfo<ThunderStormAI>();
+                convertionDictionary[DisasterType.Tornado] = DisasterManager.FindDisasterInfo<TornadoAI>();
+                convertionDictionary[DisasterType.Tsunami] = DisasterManager.FindDisasterInfo<TsunamiAI>();
+                convertionDictionary[DisasterType.StructureCollapse] = DisasterManager.FindDisasterInfo<StructureCollapseAI>();
+                convertionDictionary[DisasterType.StructureFire] = DisasterManager.FindDisasterInfo<StructureFireAI>();
+                convertionDictionary[DisasterType.Sinkhole] = DisasterManager.FindDisasterInfo<SinkholeAI>();
+
+                if (convertionDictionary.Any(x => x.Value == null))
+                {
+                    logger.Info("Contains null values");
+                }
+
+                convertionField.SetValue(disasterWrapper, convertionDictionary);
+            }
         }
 
         private bool ShouldAutoEvacuate(DisasterType disasterType)

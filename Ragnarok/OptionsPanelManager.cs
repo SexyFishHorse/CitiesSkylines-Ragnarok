@@ -66,8 +66,10 @@
             AddEnabledDisasterCheckbox(scenarioGroup, "Disable all disasters (really?)", SettingKeys.DisableScenarioDisasters);
         }
 
-        private void AddAutoEvacuateBehaviourDropDown(StronglyTypedUiHelper autoEvacuateGroup, string label,
-                                                      string settingKey)
+        private void AddAutoEvacuateBehaviourDropDown(
+            StronglyTypedUiHelper autoEvacuateGroup,
+            string label,
+            string settingKey)
         {
             autoEvacuateGroup.AddDropDown(
                 label,
