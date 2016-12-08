@@ -7,8 +7,10 @@
     using System.Threading;
     using ICities;
     using Infrastructure;
+    using Infrastructure.Extensions;
     using JetBrains.Annotations;
     using Logger;
+    using Object = UnityEngine.Object;
 
     [UsedImplicitly]
     public class RagnarokUserMod : UserModBase, IDisasterExtension, ILoadingExtension
@@ -29,11 +31,20 @@
 
         public RagnarokUserMod()
         {
-            logger = LogManager.Instance.GetOrCreateLogger(ModName);
+            try
+            {
+                logger = LogManager.Instance.GetOrCreateLogger(ModName);
 
-            logger.Info("Ragnarok created");
+                logger.Info("Ragnarok created");
 
-            OptionsPanelManager = new OptionsPanelManager(logger);
+                ModConfig.Instance.Migrate<int>("AutoEvacuateEarthquake", SettingKeys.Earthquakes.AutoEvacuate);
+
+                OptionsPanelManager = new OptionsPanelManager(logger);
+            }
+            catch (Exception ex)
+            {
+                logger.LogException(ex);
+            }
         }
 
         public override string Description
@@ -100,11 +111,12 @@
 
         public void OnDisasterActivated(ushort disasterId)
         {
+            var info = disasterWrapper.GetDisasterSettings(disasterId);
+
+            logger.Info("OnDisasterActivated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}", disasterId, info.name, info.type, info.intensity);
+
             try
             {
-                var type = disasterWrapper.GetDisasterSettings(disasterId);
-                logger.Info("Disaster activated: " + type.name);
-
                 if (ModConfig.Instance.GetSetting<bool>(SettingKeys.PauseOnDisasterStart))
                 {
                     new Thread(
@@ -140,19 +152,32 @@
 
         public void OnDisasterCreated(ushort disasterId)
         {
+            SetConvertionTable();
+
+            var info = disasterWrapper.GetDisasterSettings(disasterId);
+
+            logger.Info("OnDisasterCreated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}", disasterId, info.name, info.type, info.intensity);
+
             try
             {
                 var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
-                logger.Info("Created disaster type {0} with name {1}", disasterInfo.type, disasterInfo.name);
+                logger.Info(
+                    "Created disaster type {0} with name {1} and intensity {2}",
+                    disasterInfo.type,
+                    disasterInfo.name,
+                    disasterInfo.intensity);
 
-                var settingKey = GetDisabledSettingKeyForDisasterType(disasterInfo.type);
+                var settingKeys = GetSettingKeysForDisasterType(disasterInfo.type);
 
-                if (string.IsNullOrEmpty(settingKey))
+                if (settingKeys == null)
                 {
-                    logger.Info("No setting key found");
+                    logger.Info("No setting keys found");
+                    return;
                 }
 
-                if (ModConfig.Instance.GetSetting<bool>(settingKey))
+                // TODO: Figure out why intensity is always 55 here.
+
+                if (ModConfig.Instance.GetSetting<bool>(settingKeys.Disable))
                 {
                     logger.Info("Deactivating disaster");
                     disasterWrapper.EndDisaster(disasterId);
@@ -168,11 +193,13 @@
 
         public void OnDisasterDeactivated(ushort disasterId)
         {
+            var info = disasterWrapper.GetDisasterSettings(disasterId);
+
+            logger.Info("OnDisasterDeactivated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}", disasterId, info.name, info.type, info.intensity);
+
             try
             {
                 var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
-
-                logger.Info("Disaster {0} with name {1} over", disasterInfo.type, disasterInfo.name);
 
                 if (disasterInfo.type == DisasterType.Empty)
                 {
@@ -202,11 +229,13 @@
 
         public void OnDisasterDetected(ushort disasterId)
         {
+            var info = disasterWrapper.GetDisasterSettings(disasterId);
+
+            logger.Info("OnDisasterDetected. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}", disasterId, info.name, info.type, info.intensity);
+
             try
             {
                 var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
-
-                logger.Info("Detected {0} with name {1}", disasterInfo.type, disasterInfo.name);
 
                 if (disasterInfo.type == DisasterType.Empty)
                 {
@@ -243,29 +272,54 @@
 
         public void OnDisasterFinished(ushort disasterId)
         {
+            var info = disasterWrapper.GetDisasterSettings(disasterId);
+
+            logger.Info("OnDisasterFinished. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}", disasterId, info.name, info.type, info.intensity);
         }
 
         public void OnDisasterStarted(ushort disasterId)
         {
+            SetConvertionTable();
+
+            var info = disasterWrapper.GetDisasterSettings(disasterId);
+
+            logger.Info("OnDisasterStarted. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}", disasterId, info.name, info.type, info.intensity);
+
+            var settingKeys = GetSettingKeysForDisasterType(info.type);
+
+            if (settingKeys == null)
+            {
+                logger.Info("No setting keys found");
+                return;
+            }
+
+            if (ModConfig.Instance.GetSetting<bool>(settingKeys.Disable))
+            {
+                logger.Info("Deactivating disaster");
+                disasterWrapper.EndDisaster(disasterId);
+            }
+
+            if (ModConfig.Instance.GetSetting<bool>(settingKeys.ToggleMaxIntensity))
+            {
+                logger.Info("disable when over intensity {0}", ModConfig.Instance.GetSetting<byte>(settingKeys.MaxIntensity));
+                if (info.intensity > ModConfig.Instance.GetSetting<byte>(settingKeys.MaxIntensity))
+                {
+                    logger.Info("Deactivating disaster");
+                    disasterWrapper.EndDisaster(disasterId);
+                }
+            }
         }
 
         public void OnLevelLoaded(LoadMode mode)
         {
             try
             {
-                var updateMode = (SimulationManager.UpdateMode)mode;
-
-                logger.Info("Level loaded: " + updateMode);
-
-                if ((updateMode != SimulationManager.UpdateMode.NewGameFromMap) &&
-                    (updateMode != SimulationManager.UpdateMode.NewGameFromScenario) &&
-                    (updateMode != SimulationManager.UpdateMode.LoadGame) && (updateMode != SimulationManager.UpdateMode.LoadScenario))
+                if (!mode.IsGameOrScenario())
                 {
                     return;
                 }
 
-                if ((updateMode == SimulationManager.UpdateMode.NewGameFromScenario) ||
-                    (updateMode == SimulationManager.UpdateMode.LoadScenario))
+                if (mode.IsScenario())
                 {
                     if (ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableScenarioDisasters))
                     {
@@ -303,33 +357,33 @@
         {
             if (phasePanel == null)
             {
-                phasePanel = UnityEngine.Object.FindObjectOfType<WarningPhasePanel>();
+                phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
                 evacuatingField = phasePanel.GetType().GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
             }
         }
 
-        private string GetDisabledSettingKeyForDisasterType(DisasterType type)
+        private DisasterSettingKeys GetSettingKeysForDisasterType(DisasterType type)
         {
             switch (type)
             {
                 case DisasterType.Earthquake:
-                    return SettingKeys.DisableEarthquakes;
+                    return SettingKeys.Earthquakes;
                 case DisasterType.ForestFire:
-                    return SettingKeys.DisableForestFires;
+                    return SettingKeys.ForestFires;
                 case DisasterType.MeteorStrike:
-                    return SettingKeys.DisableMeteors;
+                    return SettingKeys.Meteors;
                 case DisasterType.Sinkhole:
-                    return SettingKeys.DisableSinkholes;
+                    return SettingKeys.Sinkholes;
                 case DisasterType.StructureCollapse:
-                    return SettingKeys.DisableStructureCollapses;
+                    return SettingKeys.StructureCollapses;
                 case DisasterType.StructureFire:
-                    return SettingKeys.DisableStructureFires;
+                    return SettingKeys.StructureFires;
                 case DisasterType.ThunderStorm:
-                    return SettingKeys.DisableThunderstorms;
+                    return SettingKeys.Thunderstorms;
                 case DisasterType.Tornado:
-                    return SettingKeys.DisableTornadoes;
+                    return SettingKeys.Tornadoes;
                 case DisasterType.Tsunami:
-                    return SettingKeys.DisableTsunamis;
+                    return SettingKeys.Tsunamis;
                 default:
                     return null;
             }
