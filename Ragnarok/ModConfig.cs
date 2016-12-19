@@ -10,7 +10,7 @@
         {
             get
             {
-                return instance ?? (instance = new ConfigurationManager(RagnarokUserMod.ModName));
+                return instance ?? (instance = ConfigurationManager.Create(RagnarokUserMod.ModName));
             }
         }
     }
