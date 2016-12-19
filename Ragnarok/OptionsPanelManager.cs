@@ -11,6 +11,10 @@
 
     public class OptionsPanelManager : IOptionsPanelManager
     {
+        private const byte DefaultIntensityValue = 55;
+
+        private const byte MinimumIntensityValue = 10;
+
         private static readonly string[] AutoEvacuateValues =
         {
             "Disabled",
@@ -101,23 +105,23 @@
                 isChecked =>
                 {
                     ModConfig.Instance.SaveSetting(toggleImpactSettingKey, isChecked);
-                    if (ModConfig.Instance.GetSetting<byte>(impactSettingKey) < 10)
+                    if (ModConfig.Instance.GetSetting<byte>(impactSettingKey) < MinimumIntensityValue)
                     {
-                        ModConfig.Instance.SaveSetting(impactSettingKey, (byte)55);
+                        ModConfig.Instance.SaveSetting(impactSettingKey, DefaultIntensityValue);
                     }
                 });
 
             var setting = ModConfig.Instance.GetSetting<byte>(impactSettingKey);
 
-            if (setting < 10)
+            if (setting < MinimumIntensityValue)
             {
-                setting = 55;
+                setting = DefaultIntensityValue;
             }
 
             var slider =
                 group.AddSlider(
                     string.Format("Max Intensity ({0})", (setting / 10.0f).ToString("F1", CultureInfo.CurrentUICulture)),
-                    10,
+                    MinimumIntensityValue,
                     100,
                     1,
                     setting,
