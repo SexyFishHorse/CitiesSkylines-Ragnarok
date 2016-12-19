@@ -37,8 +37,7 @@
 
                 logger.Info("Ragnarok created");
                 ModConfig.Instance.Logger = logger;
-                ModConfig.Instance.Migrate<int>("AutoEvacuateEarthquake", SettingKeys.Earthquakes.AutoEvacuate);
-                // todo: Add "Migrate type" method
+                ModConfig.Instance.MigrateKey<int>("AutoEvacuateEarthquake", SettingKeys.Earthquakes.AutoEvacuate);
 
                 OptionsPanelManager = new OptionsPanelManager(logger);
             }
@@ -84,7 +83,7 @@
             {
                 logger.Info("OnCreated " + disaster);
 
-                disasterWrapper = (DisasterWrapper) disaster;
+                disasterWrapper = (DisasterWrapper)disaster;
 
                 convertionField = disasterWrapper
                     .GetType()
@@ -408,7 +407,7 @@
         {
             FindPhasePanel();
 
-            var isEvacuating = (bool) evacuatingField.GetValue(phasePanel);
+            var isEvacuating = (bool)evacuatingField.GetValue(phasePanel);
 
             logger.Info("Is evacuating: " + isEvacuating);
 
@@ -421,7 +420,7 @@
 
         private void SetConvertionTable()
         {
-            var fieldValue = (Dictionary<DisasterType, DisasterInfo>) convertionField.GetValue(disasterWrapper);
+            var fieldValue = (Dictionary<DisasterType, DisasterInfo>)convertionField.GetValue(disasterWrapper);
 
             if (fieldValue == null || !fieldValue.Any() || fieldValue.Any(x => x.Value == null))
             {
