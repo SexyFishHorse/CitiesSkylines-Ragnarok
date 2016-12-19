@@ -38,6 +38,7 @@
                 logger.Info("Ragnarok created");
                 ModConfig.Instance.Logger = logger;
                 ModConfig.Instance.Migrate<int>("AutoEvacuateEarthquake", SettingKeys.Earthquakes.AutoEvacuate);
+                // todo: Add "Migrate type" method
 
                 OptionsPanelManager = new OptionsPanelManager(logger);
             }
