@@ -1,6 +1,0 @@
-[submodule "Infrastructure"]
-	path = Infrastructure
-	url = git@github.com:sexyfishhorse/citiesskylines-infrastructure
-[submodule "Logger"]
-	path = Logger
-	url = git@github.com:sexyfishhorse/citiesskylines-logger
