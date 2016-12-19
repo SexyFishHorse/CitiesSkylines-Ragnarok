@@ -103,7 +103,7 @@
                     ModConfig.Instance.SaveSetting(toggleImpactSettingKey, isChecked);
                     if (ModConfig.Instance.GetSetting<byte>(impactSettingKey) < 10)
                     {
-                        ModConfig.Instance.SaveSetting(impactSettingKey, 55);
+                        ModConfig.Instance.SaveSetting(impactSettingKey, (byte)55);
                     }
                 });
 
