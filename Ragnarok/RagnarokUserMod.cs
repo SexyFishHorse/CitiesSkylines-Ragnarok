@@ -6,10 +6,10 @@
     using System.Reflection;
     using System.Threading;
     using ICities;
+    using Infrastructure;
+    using Infrastructure.Extensions;
     using JetBrains.Annotations;
-    using SexyFishHorse.CitiesSkylines.Infrastructure;
-    using SexyFishHorse.CitiesSkylines.Infrastructure.Extensions;
-    using SexyFishHorse.CitiesSkylines.Logger;
+    using Logger;
     using Object = UnityEngine.Object;
 
     [UsedImplicitly]
@@ -22,8 +22,6 @@
         private readonly HashSet<ushort> manualReleaseDisasters = new HashSet<ushort>();
 
         private FieldInfo convertionField;
-
-        private DisasterWrapper disasterWrapper;
 
         private FieldInfo evacuatingField;
 
@@ -58,13 +56,21 @@
 
         public override string Description
         {
-            get { return "More disaster controls"; }
+            get
+            {
+                return "More disaster controls";
+            }
         }
 
         public override string Name
         {
-            get { return ModName; }
+            get
+            {
+                return ModName;
+            }
         }
+
+        public DisasterWrapper Wrapper { get; set; }
 
         public static void UpdateAutoFollowDisaster(ILogger logger)
         {
@@ -75,7 +81,7 @@
                     DisasterManager.instance.m_disableAutomaticFollow =
                         !ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableAutofocusDisaster);
 
-                    logger.Info("disableAutomaticFollow is " + DisasterManager.instance.m_disableAutomaticFollow);
+                    logger.Info("disableAutomaticFollow is {0}", DisasterManager.instance.m_disableAutomaticFollow);
                 }
             }
             catch (Exception ex)
@@ -90,11 +96,11 @@
         {
             try
             {
-                logger.Info("OnCreated " + disaster);
+                logger.Info("OnCreated {0}", disaster);
 
-                disasterWrapper = (DisasterWrapper)disaster;
+                Wrapper = (DisasterWrapper)disaster;
 
-                convertionField = disasterWrapper
+                convertionField = Wrapper
                     .GetType()
                     .GetField("m_DisasterTypeToInfoConversion", BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -114,7 +120,7 @@
 
         public void OnDisasterActivated(ushort disasterId)
         {
-            var info = disasterWrapper.GetDisasterSettings(disasterId);
+            var info = Wrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
                 "OnDisasterActivated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
@@ -167,7 +173,7 @@
         {
             SetConvertionTable();
 
-            var info = disasterWrapper.GetDisasterSettings(disasterId);
+            var info = Wrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
                 "OnDisasterCreated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
@@ -178,7 +184,7 @@
 
             try
             {
-                var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
+                var disasterInfo = Wrapper.GetDisasterSettings(disasterId);
                 logger.Info(
                     "Created disaster type {0} with name {1} and intensity {2}",
                     disasterInfo.type,
@@ -200,7 +206,7 @@
 
         public void OnDisasterDeactivated(ushort disasterId)
         {
-            var info = disasterWrapper.GetDisasterSettings(disasterId);
+            var info = Wrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
                 "OnDisasterDeactivated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
@@ -211,7 +217,7 @@
 
             try
             {
-                var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
+                var disasterInfo = Wrapper.GetDisasterSettings(disasterId);
 
                 if (disasterInfo.type == DisasterType.Empty)
                 {
@@ -241,7 +247,7 @@
 
         public void OnDisasterDetected(ushort disasterId)
         {
-            var info = disasterWrapper.GetDisasterSettings(disasterId);
+            var info = Wrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
                 "OnDisasterDetected. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
@@ -252,7 +258,7 @@
 
             try
             {
-                var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
+                var disasterInfo = Wrapper.GetDisasterSettings(disasterId);
 
                 if (disasterInfo.type == DisasterType.Empty)
                 {
@@ -289,7 +295,7 @@
 
         public void OnDisasterFinished(ushort disasterId)
         {
-            var info = disasterWrapper.GetDisasterSettings(disasterId);
+            var info = Wrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
                 "OnDisasterFinished. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
@@ -303,7 +309,7 @@
         {
             SetConvertionTable();
 
-            var info = disasterWrapper.GetDisasterSettings(disasterId);
+            var info = Wrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
                 "OnDisasterStarted. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
@@ -323,7 +329,7 @@
             if (ModConfig.Instance.GetSetting<bool>(settingKeys.Disable))
             {
                 logger.Info("Deactivating disaster");
-                disasterWrapper.EndDisaster(disasterId);
+                Wrapper.EndDisaster(disasterId);
             }
 
             if (ModConfig.Instance.GetSetting<bool>(settingKeys.ToggleMaxIntensity))
@@ -332,7 +338,7 @@
                 if (info.intensity > ModConfig.Instance.GetSetting<byte>(settingKeys.MaxIntensity))
                 {
                     logger.Info("Deactivating disaster");
-                    disasterWrapper.EndDisaster(disasterId);
+                    Wrapper.EndDisaster(disasterId);
                 }
             }
         }
@@ -373,6 +379,10 @@
         }
 
         public void OnReleased()
+        {
+        }
+
+        void IDisasterExtension.OnReleased()
         {
         }
 
@@ -423,15 +433,11 @@
             return isEvacuating;
         }
 
-        void IDisasterExtension.OnReleased()
-        {
-        }
-
         private void SetConvertionTable()
         {
-            var fieldValue = (Dictionary<DisasterType, DisasterInfo>)convertionField.GetValue(disasterWrapper);
+            var fieldValue = (Dictionary<DisasterType, DisasterInfo>)convertionField.GetValue(Wrapper);
 
-            if (fieldValue == null || !fieldValue.Any() || fieldValue.Any(x => x.Value == null))
+            if ((fieldValue == null) || !fieldValue.Any() || fieldValue.Any(x => x.Value == null))
             {
                 logger.Info("rebuilding convertion table");
                 var convertionDictionary = new Dictionary<DisasterType, DisasterInfo>();
@@ -450,7 +456,7 @@
                     logger.Info("Contains null values");
                 }
 
-                convertionField.SetValue(disasterWrapper, convertionDictionary);
+                convertionField.SetValue(Wrapper, convertionDictionary);
             }
         }
 
@@ -488,8 +494,9 @@
             if (ModConfig.Instance.GetSetting<bool>(settingKeys.Disable))
             {
                 logger.Info("Deactivating disaster");
-                disasterWrapper.EndDisaster(disasterId);
+                Wrapper.EndDisaster(disasterId);
             }
+
             return false;
         }
     }
