@@ -1,4 +1,4 @@
-﻿namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
+namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
 {
     using System.Collections.Generic;
     using System.Globalization;
@@ -89,7 +89,7 @@
         }
 
         private void AddAutoEvacuateBehaviourDropDown(
-            StronglyTypedUiHelper autoEvacuateGroup,
+            IStronglyTypedUiHelper autoEvacuateGroup,
             string settingKey)
         {
             autoEvacuateGroup.AddDropDown(
@@ -99,7 +99,7 @@
                 sel => SaveSetting(settingKey, sel));
         }
 
-        private void AddEnabledDisasterCheckbox(StronglyTypedUiHelper uiGroup, string label, string settingKey)
+        private void AddEnabledDisasterCheckbox(IStronglyTypedUiHelper uiGroup, string label, string settingKey)
         {
             uiGroup.AddCheckBox(
                 label,
@@ -107,7 +107,7 @@
                 isChecked => SaveSetting(settingKey, isChecked));
         }
 
-        private void AddMaxIntensitySlider(StronglyTypedUiHelper group, string impactSettingKey, string toggleImpactSettingKey)
+        private void AddMaxIntensitySlider(IStronglyTypedUiHelper group, string impactSettingKey, string toggleImpactSettingKey)
         {
             group.AddCheckBox(
                 "Disable disasters over a certain intensity (use slider below)",

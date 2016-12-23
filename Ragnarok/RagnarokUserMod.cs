@@ -6,7 +6,7 @@
     using JetBrains.Annotations;
     using Logger;
     using Logging;
-    
+
     [UsedImplicitly]
     public class RagnarokUserMod : UserModBase
     {
@@ -35,20 +35,6 @@
             }
         }
 
-        private static void MigrateOldSettings()
-        {
-            ModConfig.Instance.MigrateKey<int>("AutoEvacuateEarthquake", SettingKeys.Earthquakes.AutoEvacuate);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Earthquakes.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.ForestFires.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Meteors.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Sinkholes.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.StructureCollapses.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.StructureFires.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Thunderstorms.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Tornadoes.MaxIntensity, Convert.ToByte);
-            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Tsunamis.MaxIntensity, Convert.ToByte);
-        }
-
         public override string Description
         {
             get
@@ -63,6 +49,20 @@
             {
                 return ModName;
             }
+        }
+
+        private void MigrateOldSettings()
+        {
+            ModConfig.Instance.MigrateKey<int>("AutoEvacuateEarthquake", SettingKeys.Earthquakes.AutoEvacuate);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Earthquakes.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.ForestFires.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Meteors.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Sinkholes.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.StructureCollapses.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.StructureFires.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Thunderstorms.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Tornadoes.MaxIntensity, Convert.ToByte);
+            ModConfig.Instance.MigrateType<int, byte>(SettingKeys.Tsunamis.MaxIntensity, Convert.ToByte);
         }
     }
 }
