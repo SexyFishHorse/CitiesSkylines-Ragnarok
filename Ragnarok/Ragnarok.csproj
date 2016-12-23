@@ -63,12 +63,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ModConfig.cs" />
-    <Compile Include="OptionsPanelManager.cs" />
+    <Compile Include="Configuration\ModConfig.cs" />
+    <Compile Include="Configuration\OptionsPanelManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RagnarokUserMod.cs" />
-    <Compile Include="SettingKeys.cs" />
-    <Compile Include="SettingKeys.DisasterSettingKeys.cs" />
+    <Compile Include="Configuration\SettingKeys.cs" />
+    <Compile Include="Configuration\SettingKeys.DisasterSettingKeys.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

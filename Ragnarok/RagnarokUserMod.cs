@@ -5,6 +5,7 @@
     using System.Linq;
     using System.Reflection;
     using System.Threading;
+    using Configuration;
     using ICities;
     using Infrastructure;
     using Infrastructure.Extensions;

@@ -1,4 +1,4 @@
-﻿namespace SexyFishHorse.CitiesSkylines.Ragnarok
+﻿namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
 {
     public class DisasterSettingKeys
     {
