@@ -11,6 +11,8 @@
 
         public const string DisableScenarioDisasters = "DisableScenarioDisasters";
 
+        public const string EnableLogging = "EnableLogging";
+
         public const string PauseOnDisasterStart = "PauseOnDisasterStart";
 
         public static readonly DisasterSettingKeys Earthquakes = new DisasterSettingKeys("Earthquakes");

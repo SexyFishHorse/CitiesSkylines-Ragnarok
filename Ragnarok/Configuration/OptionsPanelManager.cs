@@ -76,6 +76,15 @@
 
             var scenarioGroup = uiHelper.AddGroup("Scenarios");
             AddEnabledDisasterCheckbox(scenarioGroup, "Disable all disasters (really?)", SettingKeys.DisableScenarioDisasters);
+
+            var debuggingGroup = uiHelper.AddGroup("Debugging");
+            debuggingGroup.AddCheckBox(
+                "Enable logging",
+                ModConfig.Instance.GetSetting<bool>(SettingKeys.EnableLogging),
+                isChecked =>
+                {
+                    ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, isChecked);
+                });
         }
 
         private void AddAutoEvacuateBehaviourDropDown(

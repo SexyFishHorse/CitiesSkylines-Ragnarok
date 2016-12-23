@@ -11,7 +11,7 @@
     using Infrastructure.Extensions;
     using JetBrains.Annotations;
     using Logger;
-    using Object = UnityEngine.Object;
+    using Logging;
 
     [UsedImplicitly]
     public class RagnarokUserMod : UserModBase, IDisasterExtension, ILoadingExtension
@@ -20,21 +20,16 @@
 
         private readonly ILogger logger;
 
-        private readonly HashSet<ushort> manualReleaseDisasters = new HashSet<ushort>();
-
         private FieldInfo convertionField;
-
-        private FieldInfo evacuatingField;
-
-        private WarningPhasePanel phasePanel;
 
         public RagnarokUserMod()
         {
             try
             {
-                logger = LogManager.Instance.GetOrCreateLogger(ModName);
-
+                logger = RagnarokLogger.Instance;
+                ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, true);
                 logger.Info("Ragnarok created");
+
                 ModConfig.Instance.Logger = logger;
                 MigrateOldSettings();
 
@@ -43,6 +38,8 @@
             catch (Exception ex)
             {
                 logger.LogException(ex);
+
+                throw;
             }
         }
 
@@ -149,7 +146,7 @@
                         {
                             try
                             {
-                                var pauseStart = DateTime.UtcNow + TimeSpan.FromSeconds(2);
+                                var pauseStart = DateTime.UtcNow + TimeSpan.FromSeconds(5);
 
                                 while (DateTime.UtcNow < pauseStart)
                                 {
@@ -212,103 +209,14 @@
 
         public void OnDisasterDeactivated(ushort disasterId)
         {
-            var info = Wrapper.GetDisasterSettings(disasterId);
-
-            logger.Info(
-                "OnDisasterDeactivated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
-                disasterId,
-                info.name,
-                info.type,
-                info.intensity);
-
-            try
-            {
-                var disasterInfo = Wrapper.GetDisasterSettings(disasterId);
-
-                if (disasterInfo.type == DisasterType.Empty)
-                {
-                    return;
-                }
-
-                if (!IsEvacuating())
-                {
-                    logger.Info("Not evacuating. Clear list of active manual release disasters");
-                    manualReleaseDisasters.Clear();
-                    return;
-                }
-
-                if (ShouldAutoRelease(disasterInfo.type) && !manualReleaseDisasters.Any())
-                {
-                    logger.Info("Auto releasing citizens");
-                    DisasterManager.instance.EvacuateAll(true);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogException(ex);
-
-                throw;
-            }
         }
 
         public void OnDisasterDetected(ushort disasterId)
         {
-            var info = Wrapper.GetDisasterSettings(disasterId);
-
-            logger.Info(
-                "OnDisasterDetected. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
-                disasterId,
-                info.name,
-                info.type,
-                info.intensity);
-
-            try
-            {
-                var disasterInfo = Wrapper.GetDisasterSettings(disasterId);
-
-                if (disasterInfo.type == DisasterType.Empty)
-                {
-                    return;
-                }
-
-                if (ShouldAutoEvacuate(disasterInfo.type))
-                {
-                    logger.Info("Is auto-evacuate disaster");
-                    if (!IsEvacuating())
-                    {
-                        logger.Info("Starting evacuation");
-                        DisasterManager.instance.EvacuateAll(false);
-                    }
-                    else
-                    {
-                        logger.Info("Already evacuating");
-                    }
-
-                    if (ShouldManualRelease(disasterInfo.type))
-                    {
-                        logger.Info("Should be manually released");
-                        manualReleaseDisasters.Add(disasterId);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogException(ex);
-
-                throw;
-            }
         }
 
         public void OnDisasterFinished(ushort disasterId)
         {
-            var info = Wrapper.GetDisasterSettings(disasterId);
-
-            logger.Info(
-                "OnDisasterFinished. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
-                disasterId,
-                info.name,
-                info.type,
-                info.intensity);
         }
 
         public void OnDisasterStarted(ushort disasterId)
@@ -325,7 +233,6 @@
                 info.intensity);
 
             var settingKeys = GetSettingKeysForDisasterType(info.type);
-
             if (settingKeys == null)
             {
                 logger.Info("No setting keys found");
@@ -366,8 +273,6 @@
                     }
                 }
 
-                FindPhasePanel();
-
                 BuildingManager.instance.m_firesDisabled = ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires);
 
                 UpdateAutoFollowDisaster(logger);
@@ -390,15 +295,6 @@
 
         void IDisasterExtension.OnReleased()
         {
-        }
-
-        private void FindPhasePanel()
-        {
-            if (phasePanel == null)
-            {
-                phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
-                evacuatingField = phasePanel.GetType().GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
-            }
         }
 
         private DisasterSettingKeys GetSettingKeysForDisasterType(DisasterType type)
@@ -428,17 +324,6 @@
             }
         }
 
-        private bool IsEvacuating()
-        {
-            FindPhasePanel();
-
-            var isEvacuating = (bool)evacuatingField.GetValue(phasePanel);
-
-            logger.Info("Is evacuating: " + isEvacuating);
-
-            return isEvacuating;
-        }
-
         private void SetConvertionTable()
         {
             var fieldValue = (Dictionary<DisasterType, DisasterInfo>)convertionField.GetValue(Wrapper);
@@ -464,27 +349,6 @@
 
                 convertionField.SetValue(Wrapper, convertionDictionary);
             }
-        }
-
-        private bool ShouldAutoEvacuate(DisasterType disasterType)
-        {
-            var settingKey = SettingKeys.AutoEvacuateSettingKeyMapping.Single(x => x.Key == disasterType).Value;
-
-            return ModConfig.Instance.GetSetting<int>(settingKey) > 0;
-        }
-
-        private bool ShouldAutoRelease(DisasterType disasterType)
-        {
-            var settingKey = SettingKeys.AutoEvacuateSettingKeyMapping.Single(x => x.Key == disasterType).Value;
-
-            return ModConfig.Instance.GetSetting<int>(settingKey) > 1;
-        }
-
-        private bool ShouldManualRelease(DisasterType disasterType)
-        {
-            var settingKey = SettingKeys.AutoEvacuateSettingKeyMapping.Single(x => x.Key == disasterType).Value;
-
-            return ModConfig.Instance.GetSetting<int>(settingKey) == 1;
         }
 
         private bool TryDisableDisaster(ushort disasterId, DisasterSettings disasterInfo)
