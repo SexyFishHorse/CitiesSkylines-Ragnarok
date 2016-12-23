@@ -32,15 +32,15 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Assembly-CSharp.1.6.1.2\lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\packages\Assembly-CSharp.1.6.2.1\lib\net35\Assembly-CSharp.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ColossalManaged, Version=0.3.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ColossalManaged.1.6.1.2\lib\ColossalManaged.dll</HintPath>
+      <HintPath>..\packages\ColossalManaged.1.6.2.1\lib\net35\ColossalManaged.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ICities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\ICities.1.6.1.2\lib\ICities.dll</HintPath>
+      <HintPath>..\packages\ICities.1.6.2.1\lib\net35\ICities.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SexyFishHorse.CitiesSkylines.Infrastructure, Version=1.0.6198.39519, Culture=neutral, processorArchitecture=MSIL">
@@ -58,7 +58,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnityEngine.1.6.1.2\lib\UnityEngine.dll</HintPath>
+      <HintPath>..\packages\UnityEngine.1.6.2.1\lib\net35\UnityEngine.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
