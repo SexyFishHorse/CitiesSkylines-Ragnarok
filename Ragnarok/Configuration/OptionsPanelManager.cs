@@ -8,6 +8,7 @@
     using Infrastructure.UI.Configuration;
     using Infrastructure.UI.Extensions;
     using Logger;
+    using ModExtensions;
 
     public class OptionsPanelManager : IOptionsPanelManager
     {
@@ -154,7 +155,7 @@
         {
             SaveSetting(SettingKeys.DisableAutofocusDisaster, isChecked);
 
-            RagnarokUserMod.UpdateAutoFollowDisaster(logger);
+            DisasterService.UpdateAutoFollowDisaster(logger);
         }
 
         private void OnDisableNonDisasterFiresChanged(bool isChecked)
