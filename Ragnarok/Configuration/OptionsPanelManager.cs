@@ -155,7 +155,7 @@
         {
             SaveSetting(SettingKeys.DisableAutofocusDisaster, isChecked);
 
-            DisasterService.UpdateAutoFollowDisaster(logger);
+            GenericDisasterServices.UpdateAutoFollowDisaster(logger);
         }
 
         private void OnDisableNonDisasterFiresChanged(bool isChecked)

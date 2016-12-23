@@ -66,8 +66,9 @@
     <Compile Include="Configuration\ModConfig.cs" />
     <Compile Include="Configuration\OptionsPanelManager.cs" />
     <Compile Include="Logging\RagnarokLogger.cs" />
-    <Compile Include="ModExtensions\DisasterService.cs" />
+    <Compile Include="ModExtensions\DisableDisasterService.cs" />
     <Compile Include="ModExtensions\EvacuationService.cs" />
+    <Compile Include="ModExtensions\GenericDisasterServices.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RagnarokUserMod.cs" />
     <Compile Include="Configuration\SettingKeys.cs" />

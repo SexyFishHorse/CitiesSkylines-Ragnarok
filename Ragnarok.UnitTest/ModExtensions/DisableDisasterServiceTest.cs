@@ -1,21 +1,15 @@
-﻿namespace SexyFishHorse.CitiesSkylines.Ragnarok.UnitTest
+﻿namespace SexyFishHorse.CitiesSkylines.Ragnarok.UnitTest.ModExtensions
 {
     using System.Reflection;
     using FluentAssertions;
+    using JetBrains.Annotations;
     using Xunit;
 
-    public class RagnarokUserModClass
+    [UsedImplicitly]
+    public class DisableDisasterServiceTest
     {
         public class PrivateFieldsCheck
         {
-            [Fact]
-            public void WarningPhasePanelShouldHavePrivateFieldForIsEvacuating()
-            {
-                var evacuatingField = typeof(WarningPhasePanel).GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
-
-                evacuatingField.Should().NotBeNull();
-            }
-
             [Fact]
             public void DisasterWrapperShouldHavePrivateFieldForDisasterTypeInfoConvertion()
             {
