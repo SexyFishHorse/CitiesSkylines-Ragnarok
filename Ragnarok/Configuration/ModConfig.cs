@@ -4,9 +4,9 @@
 
     public static class ModConfig
     {
-        private static ConfigurationManager instance;
+        private static IConfigurationManager instance;
 
-        public static ConfigurationManager Instance
+        public static IConfigurationManager Instance
         {
             get
             {
