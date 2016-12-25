@@ -46,17 +46,17 @@
             { DisasterType.Tsunami, Tsunamis.AutoEvacuate }
         };
 
-        public static readonly IDictionary<DisasterType, string> DisableDisasterSettingKeyMapping = new Dictionary<DisasterType, string>
+        public static readonly IDictionary<string, DisasterSettingKeys> DisasterSettingKeys = new Dictionary<string, DisasterSettingKeys>
         {
-            { DisasterType.Earthquake, Earthquakes.Disable },
-            { DisasterType.ForestFire, ForestFires.Disable },
-            { DisasterType.MeteorStrike, Meteors.Disable },
-            { DisasterType.Sinkhole, Sinkholes.Disable },
-            { DisasterType.StructureCollapse, StructureCollapses.Disable },
-            { DisasterType.StructureFire, StructureFires.Disable },
-            { DisasterType.ThunderStorm, Thunderstorms.Disable },
-            { DisasterType.Tornado, Tornadoes.Disable },
-            { DisasterType.Tsunami, Tsunamis.Disable }
+            { "Earthquake", Earthquakes },
+            { "Forest Fire", ForestFires },
+            { "Meteor Strike", Meteors },
+            { "Sinkhole", Sinkholes },
+            { "Structure Collapse", StructureCollapses },
+            { "Structure Fire", StructureFires },
+            { "Thunderstorm", Thunderstorms },
+            { "Tornado", Tornadoes },
+            { "Tsunami", Tsunamis },
         };
     }
 }

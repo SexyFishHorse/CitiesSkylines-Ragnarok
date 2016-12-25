@@ -30,7 +30,7 @@
         {
             try
             {
-                logger.Info("OnCreated {0}", disaster);
+                logger.Info("DDS: OnCreated {0}", disaster);
 
                 disasterWrapper = (DisasterWrapper)disaster;
 
@@ -59,7 +59,7 @@
                 var info = disasterWrapper.GetDisasterSettings(disasterId);
 
                 logger.Info(
-                    "OnDisasterActivated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
+                    "DDS: OnDisasterActivated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
                     disasterId,
                     info.name,
                     info.type,
@@ -88,7 +88,7 @@
             var info = disasterWrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
-                "OnDisasterCreated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
+                "DDS: OnDisasterCreated. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
                 disasterId,
                 info.name,
                 info.type,
@@ -98,7 +98,7 @@
             {
                 var disasterInfo = disasterWrapper.GetDisasterSettings(disasterId);
                 logger.Info(
-                    "Created disaster type {0} with name {1} and intensity {2}",
+                    "DDS: Created disaster type {0} with name {1} and intensity {2}",
                     disasterInfo.type,
                     disasterInfo.name,
                     disasterInfo.intensity);
@@ -123,7 +123,7 @@
             var info = disasterWrapper.GetDisasterSettings(disasterId);
 
             logger.Info(
-                "OnDisasterStarted. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
+                "DDS: OnDisasterStarted. Id: {0}, Name: {1}, Type: {2}, Intensity: {3}",
                 disasterId,
                 info.name,
                 info.type,
@@ -132,22 +132,23 @@
             var settingKeys = GetSettingKeysForDisasterType(info.type);
             if (settingKeys == null)
             {
-                logger.Info("No setting keys found");
+                logger.Info("DDS: No setting keys found");
                 return;
             }
 
             if (ModConfig.Instance.GetSetting<bool>(settingKeys.Disable))
             {
-                logger.Info("Deactivating disaster");
+                logger.Info("DDS: Deactivating disaster");
                 disasterWrapper.EndDisaster(disasterId);
             }
 
-            if (ModConfig.Instance.GetSetting<bool>(settingKeys.ToggleMaxIntensity))
+            var maxIntensity = ModConfig.Instance.GetSetting<byte>(settingKeys.MaxIntensity);
+            if (maxIntensity > 0)
             {
-                logger.Info("disable when over intensity {0}", ModConfig.Instance.GetSetting<byte>(settingKeys.MaxIntensity));
-                if (info.intensity > ModConfig.Instance.GetSetting<byte>(settingKeys.MaxIntensity))
+                logger.Info("DDS: Disable when over intensity {0}", maxIntensity);
+                if (info.intensity > maxIntensity)
                 {
-                    logger.Info("Deactivating disaster");
+                    logger.Info("DDS: Deactivating disaster");
                     disasterWrapper.EndDisaster(disasterId);
                 }
             }
@@ -219,7 +220,7 @@
 
             if ((fieldValue == null) || !fieldValue.Any() || fieldValue.Any(x => x.Value == null))
             {
-                logger.Info("rebuilding convertion table");
+                logger.Info("DDS: Rebuilding convertion table");
                 var convertionDictionary = new Dictionary<DisasterType, DisasterInfo>();
                 convertionDictionary[DisasterType.Earthquake] = DisasterManager.FindDisasterInfo<EarthquakeAI>();
                 convertionDictionary[DisasterType.ForestFire] = DisasterManager.FindDisasterInfo<ForestFireAI>();
@@ -233,7 +234,7 @@
 
                 if (convertionDictionary.Any(x => x.Value == null))
                 {
-                    logger.Info("Contains null values");
+                    logger.Info("DDS: Contains null values");
                 }
 
                 convertionField.SetValue(disasterWrapper, convertionDictionary);
@@ -246,13 +247,13 @@
 
             if (settingKeys == null)
             {
-                logger.Info("No setting keys found");
+                logger.Info("DDS: No setting keys found");
                 return true;
             }
 
             if (ModConfig.Instance.GetSetting<bool>(settingKeys.Disable))
             {
-                logger.Info("Deactivating disaster");
+                logger.Info("DDS: Deactivating disaster");
                 disasterWrapper.EndDisaster(disasterId);
             }
 
