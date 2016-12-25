@@ -4,12 +4,14 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
+    using ColossalFramework;
     using ColossalFramework.UI;
     using Infrastructure.UI;
     using Infrastructure.UI.Configuration;
     using Infrastructure.UI.Extensions;
-    using Logger;
     using ModExtensions;
+    using UnityEngine;
+    using ILogger = Logger.ILogger;
 
     public class OptionsPanelManager : IOptionsPanelManager
     {
@@ -41,7 +43,6 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
             ConfigureDisableDisastersGroup(uiHelper);
             ConfigureMaxIntensityGroup(uiHelper);
             ConfigureAutoEvacuateGroup(uiHelper);
-
             ConfigureProbabilityGroup(uiHelper);
 
             var debuggingGroup = uiHelper.AddGroup("Debugging");
@@ -49,16 +50,6 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                 "Enable logging",
                 ModConfig.Instance.GetSetting<bool>(SettingKeys.EnableLogging),
                 isChecked => { ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, isChecked); });
-        }
-
-        private void ConfigureAutoEvacuateGroup(IStronglyTypedUiHelper uiHelper)
-        {
-            var group = uiHelper.AddGroup("Auto evacuate");
-
-            foreach (var disaster in SettingKeys.DisasterSettingKeys)
-            {
-                AddAutoEvacuateBehaviourDropDown(group, disaster.Key, disaster.Value.AutoEvacuate);
-            }
         }
 
         private void AddAutoEvacuateBehaviourDropDown(IStronglyTypedUiHelper autoEvacuateGroup, string disasterName, string settingKey)
@@ -69,7 +60,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                 ModConfig.Instance.GetSetting<int>(settingKey),
                 sel => SaveSetting(settingKey, sel));
 
-            dropDown.width = (int)Math.Round(dropDown.width * 1.4f);
+            dropDown.width = (int)Math.Round(dropDown.width*1.4f);
         }
 
         private void AddEnabledDisasterCheckbox(IStronglyTypedUiHelper uiGroup, string label, string settingKey)
@@ -90,7 +81,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
 
             var slider =
                 group.AddSlider(
-                    string.Format("{0} ({1})", disasterName, (setting / 10.0f).ToString("F1", CultureInfo.CurrentUICulture)),
+                    disasterName,
                     MinimumIntensityValue,
                     MaximumIntensityValue,
                     1,
@@ -100,6 +91,9 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                         ModConfig.Instance.SaveSetting(impactSettingKey, (byte)val);
                         UpdateMaxIntensityLabel(impactSettingKey, disasterName, val);
                     });
+            slider.width = (int)Math.Round(slider.width*1.4);
+            var label = slider.GetLabel();
+            label.width = (int)Math.Round(label.width*1.4);
 
             if (maxIntensitySliders.ContainsKey(impactSettingKey))
             {
@@ -109,6 +103,8 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
             {
                 maxIntensitySliders.Add(impactSettingKey, slider);
             }
+
+            UpdateMaxIntensityLabel(impactSettingKey, disasterName, setting);
         }
 
         private void AddProbabilitySlider(IStronglyTypedUiHelper disasterGroup, string settingKey, DisasterInfo disasterInfo)
@@ -132,9 +128,19 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                     ModConfig.Instance.SaveSetting(settingKey, (int)newProbability);
                 });
 
-            slider.width = (int)Math.Round(slider.width * 1.5f);
+            slider.width = (int)Math.Round(slider.width*1.5f);
             var label = slider.GetLabel();
-            label.width = (int)Math.Round(label.width * 1.5f);
+            label.width = (int)Math.Round(label.width*1.5f);
+        }
+
+        private void ConfigureAutoEvacuateGroup(IStronglyTypedUiHelper uiHelper)
+        {
+            var group = uiHelper.AddGroup("Auto evacuate");
+
+            foreach (var disaster in SettingKeys.DisasterSettingKeys)
+            {
+                AddAutoEvacuateBehaviourDropDown(group, disaster.Key, disaster.Value.AutoEvacuate);
+            }
         }
 
         private void ConfigureDisableDisastersGroup(IStronglyTypedUiHelper uiHelper)
@@ -175,7 +181,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
         private void ConfigureMaxIntensityGroup(IStronglyTypedUiHelper uiHelper)
         {
             var group = uiHelper.AddGroup("Disable disasters over a given intensity");
-            group.AddLabel("Use the sliders to set the max intensity for a given disaster.\nSet to zero (0) to allow all intensities");
+            group.AddLabel("Use the sliders to set the max intensity for a given disaster.\nSet to zero (0) to allow all intensities.");
 
             foreach (var disaster in SettingKeys.DisasterSettingKeys)
             {
@@ -233,16 +239,16 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
         private void UpdateMaxIntensityLabel(string impactSettingKey, string disasterName, float value)
         {
             string intensity;
-            if (value < 10)
+            if (value < 1)
             {
                 intensity = "Allow all";
             }
             else
             {
-                intensity = (value / 10.0f).ToString("f1", CultureInfo.CurrentUICulture);
+                intensity = (value/10.0f).ToString("f1", CultureInfo.CurrentUICulture);
             }
 
-            maxIntensitySliders[impactSettingKey].SetLabelText(string.Format("{0} ({1})", disasterName, intensity));
+            maxIntensitySliders[impactSettingKey].SetLabelText("{0} ({1})", disasterName, intensity);
         }
     }
 }

@@ -19,7 +19,6 @@
             try
             {
                 logger = RagnarokLogger.Instance;
-                ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, true);
                 logger.Info("Ragnarok created");
 
                 ModConfig.Instance.Logger = logger;
