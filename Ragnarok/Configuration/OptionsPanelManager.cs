@@ -9,6 +9,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
     using Infrastructure.UI.Configuration;
     using Infrastructure.UI.Extensions;
     using Logger;
+    using Logging;
     using ModExtensions;
 
     public class OptionsPanelManager : IOptionsPanelManager
@@ -49,7 +50,11 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                 debuggingGroup.AddCheckBox(
                     "Enable logging",
                     ModConfig.Instance.GetSetting<bool>(SettingKeys.EnableLogging),
-                    isChecked => { ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, isChecked); });
+                    isChecked =>
+                    {
+                        ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, isChecked);
+                        RagnarokLogger.Enabled = isChecked;
+                    });
             }
             catch (Exception ex)
             {
@@ -67,7 +72,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                 ModConfig.Instance.GetSetting<int>(settingKey),
                 sel => SaveSetting(settingKey, sel));
 
-            dropDown.width = (int)Math.Round(dropDown.width*1.4f);
+            dropDown.width = (int)Math.Round(dropDown.width * 1.4f);
         }
 
         private void AddEnabledDisasterCheckbox(IStronglyTypedUiHelper uiGroup, string label, string settingKey)
@@ -98,9 +103,9 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                         ModConfig.Instance.SaveSetting(impactSettingKey, (byte)val);
                         UpdateMaxIntensityLabel(impactSettingKey, disasterName, val);
                     });
-            slider.width = (int)Math.Round(slider.width*1.4);
+            slider.width = (int)Math.Round(slider.width * 1.4);
             var label = slider.GetLabel();
-            label.width = (int)Math.Round(label.width*1.4);
+            label.width = (int)Math.Round(label.width * 1.4);
 
             if (maxIntensitySliders.ContainsKey(impactSettingKey))
             {
@@ -135,9 +140,9 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                     ModConfig.Instance.SaveSetting(settingKey, (int)newProbability);
                 });
 
-            slider.width = (int)Math.Round(slider.width*1.5f);
+            slider.width = (int)Math.Round(slider.width * 1.5f);
             var label = slider.GetLabel();
-            label.width = (int)Math.Round(label.width*1.5f);
+            label.width = (int)Math.Round(label.width * 1.5f);
         }
 
         private void ConfigureAutoEvacuateGroup(IStronglyTypedUiHelper uiHelper)
@@ -252,7 +257,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
             }
             else
             {
-                intensity = (value/10.0f).ToString("f1", CultureInfo.CurrentUICulture);
+                intensity = (value / 10.0f).ToString("f1", CultureInfo.CurrentUICulture);
             }
 
             maxIntensitySliders[impactSettingKey].SetLabelText("{0} ({1})", disasterName, intensity);

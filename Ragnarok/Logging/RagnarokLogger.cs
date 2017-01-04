@@ -2,7 +2,6 @@
 {
     using System;
     using ColossalFramework.Plugins;
-    using Configuration;
     using JetBrains.Annotations;
     using Logger;
 
@@ -16,6 +15,8 @@
         {
             logger = LogManager.Instance.GetOrCreateLogger(RagnarokUserMod.ModName);
         }
+
+        public static bool Enabled { get; set; }
 
         public static ILogger Instance
         {
@@ -38,7 +39,7 @@
 
         public void Info(string message, params object[] args)
         {
-            if (IsDisabled())
+            if (!Enabled)
             {
                 return;
             }
@@ -49,7 +50,7 @@
         [StringFormatMethod("message")]
         public void Log(PluginManager.MessageType messageType, string message, params object[] args)
         {
-            if (IsDisabled() && (messageType != PluginManager.MessageType.Error))
+            if (!Enabled && (messageType != PluginManager.MessageType.Error))
             {
                 return;
             }
@@ -65,17 +66,12 @@
         [StringFormatMethod("message")]
         public void Warn(string message, params object[] args)
         {
-            if (IsDisabled())
+            if (!Enabled)
             {
                 return;
             }
 
             logger.Warn(message, args);
-        }
-
-        private bool IsDisabled()
-        {
-            return !ModConfig.Instance.GetSetting<bool>(SettingKeys.EnableLogging);
         }
     }
 }
