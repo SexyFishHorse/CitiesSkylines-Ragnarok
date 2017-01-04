@@ -39,17 +39,26 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
 
         public void ConfigureOptionsPanel(IStronglyTypedUiHelper uiHelper)
         {
-            ConfigureGeneralGroup(uiHelper);
-            ConfigureDisableDisastersGroup(uiHelper);
-            ConfigureMaxIntensityGroup(uiHelper);
-            ConfigureAutoEvacuateGroup(uiHelper);
-            ConfigureProbabilityGroup(uiHelper);
+            try
+            {
+                ConfigureGeneralGroup(uiHelper);
+                ConfigureDisableDisastersGroup(uiHelper);
+                ConfigureMaxIntensityGroup(uiHelper);
+                ConfigureAutoEvacuateGroup(uiHelper);
+                ConfigureProbabilityGroup(uiHelper);
 
-            var debuggingGroup = uiHelper.AddGroup("Debugging");
-            debuggingGroup.AddCheckBox(
-                "Enable logging",
-                ModConfig.Instance.GetSetting<bool>(SettingKeys.EnableLogging),
-                isChecked => { ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, isChecked); });
+                var debuggingGroup = uiHelper.AddGroup("Debugging");
+                debuggingGroup.AddCheckBox(
+                    "Enable logging",
+                    ModConfig.Instance.GetSetting<bool>(SettingKeys.EnableLogging),
+                    isChecked => { ModConfig.Instance.SaveSetting(SettingKeys.EnableLogging, isChecked); });
+            }
+            catch (Exception ex)
+            {
+                logger.LogException(ex);
+
+                throw;
+            }
         }
 
         private void AddAutoEvacuateBehaviourDropDown(IStronglyTypedUiHelper autoEvacuateGroup, string disasterName, string settingKey)
