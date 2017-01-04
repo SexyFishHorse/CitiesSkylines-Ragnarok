@@ -4,14 +4,14 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using ColossalFramework;
+    using System.Reflection;
     using ColossalFramework.UI;
     using Infrastructure.UI;
     using Infrastructure.UI.Configuration;
     using Infrastructure.UI.Extensions;
+    using Logger;
     using ModExtensions;
-    using UnityEngine;
-    using ILogger = Logger.ILogger;
+    using Redirection;
 
     public class OptionsPanelManager : IOptionsPanelManager
     {
@@ -160,6 +160,17 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
                 "Fires not caused by disasters",
                 ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableNonDisasterFires),
                 OnDisableNonDisasterFiresChanged);
+            group.AddCheckBox(
+                "Building fires do not spread to trees",
+                ModConfig.Instance.GetSetting<bool>(SettingKeys.DisableBuildingSpreadToTrees),
+                isChecked =>
+                {
+                    SaveSetting(SettingKeys.DisableBuildingSpreadToTrees, isChecked);
+                    if (isChecked)
+                    {
+                        AssemblyRedirector.Deploy(Assembly.GetExecutingAssembly());
+                    }
+                });
             group.AddSpace(10);
 
             foreach (var disableDisaster in SettingKeys.DisasterSettingKeys)

@@ -11,6 +11,8 @@
 
         public const string DisableScenarioDisasters = "DisableScenarioDisasters";
 
+        public const string DisableBuildingSpreadToTrees = "DisableBuildingSpreadToTrees";
+
         public const string EnableLogging = "EnableLogging";
 
         public const string PauseOnDisasterStart = "PauseOnDisasterStart";
@@ -43,7 +45,7 @@
             { DisasterType.StructureFire, StructureFires.AutoEvacuate },
             { DisasterType.ThunderStorm, Thunderstorms.AutoEvacuate },
             { DisasterType.Tornado, Tornadoes.AutoEvacuate },
-            { DisasterType.Tsunami, Tsunamis.AutoEvacuate }
+            { DisasterType.Tsunami, Tsunamis.AutoEvacuate },
         };
 
         public static readonly IDictionary<string, DisasterSettingKeys> DisasterSettingKeys = new Dictionary<string, DisasterSettingKeys>
