@@ -8,8 +8,8 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
     using Infrastructure.UI;
     using Infrastructure.UI.Configuration;
     using Infrastructure.UI.Extensions;
+    using Logger;
     using ModExtensions;
-    using ILogger = Logger.ILogger;
 
     public class OptionsPanelManager : IOptionsPanelManager
     {
