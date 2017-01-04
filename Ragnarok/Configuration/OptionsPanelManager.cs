@@ -4,13 +4,11 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
     using System.Collections.Generic;
     using System.Globalization;
     using System.Linq;
-    using ColossalFramework;
     using ColossalFramework.UI;
     using Infrastructure.UI;
     using Infrastructure.UI.Configuration;
     using Infrastructure.UI.Extensions;
     using ModExtensions;
-    using UnityEngine;
     using ILogger = Logger.ILogger;
 
     public class OptionsPanelManager : IOptionsPanelManager
