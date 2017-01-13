@@ -65,6 +65,7 @@
   <ItemGroup>
     <Compile Include="Configuration\ModConfig.cs" />
     <Compile Include="Configuration\OptionsPanelManager.cs" />
+    <Compile Include="Model\DisasterInfoNames.cs" />
     <Compile Include="Logging\RagnarokLogger.cs" />
     <Compile Include="ModExtensions\DisableDisasterService.cs" />
     <Compile Include="ModExtensions\DisasterProbabilityService.cs" />

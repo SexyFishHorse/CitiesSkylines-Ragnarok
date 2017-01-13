@@ -5,6 +5,7 @@
     using System.Threading;
     using Configuration;
     using Logger;
+    using SexyFishHorse.CitiesSkylines.Ragnarok.Model;
 
     public static class GenericDisasterServices
     {
@@ -16,7 +17,7 @@
             for (var i = 0; i < numPrefabs; i++)
             {
                 var disasterInfo = PrefabCollection<DisasterInfo>.GetPrefab((uint)i);
-                if (disasterInfo.name == "Generic Flood")
+                if (disasterInfo == null || disasterInfo.name == DisasterInfoNames.GenericFlood)
                 {
                     continue;
                 }
