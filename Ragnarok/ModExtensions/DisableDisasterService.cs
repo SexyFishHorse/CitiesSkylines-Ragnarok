@@ -10,6 +10,7 @@
     using JetBrains.Annotations;
     using Logger;
     using Logging;
+    using SexyFishHorse.CitiesSkylines.Ragnarok.Services;
 
     [UsedImplicitly]
     public class DisableDisasterService : IDisasterBase, ILoadingExtension

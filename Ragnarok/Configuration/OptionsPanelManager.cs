@@ -11,6 +11,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
     using Logger;
     using Logging;
     using ModExtensions;
+    using SexyFishHorse.CitiesSkylines.Ragnarok.Services;
 
     public class OptionsPanelManager : IOptionsPanelManager
     {

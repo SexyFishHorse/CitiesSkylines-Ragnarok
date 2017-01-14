@@ -4,6 +4,7 @@
     using ICities;
     using Infrastructure.Extensions;
     using JetBrains.Annotations;
+    using SexyFishHorse.CitiesSkylines.Ragnarok.Services;
 
     [UsedImplicitly]
     public class DisasterProbabilityService : LoadingExtensionBase
