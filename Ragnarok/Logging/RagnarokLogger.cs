@@ -4,6 +4,7 @@
     using ColossalFramework.Plugins;
     using JetBrains.Annotations;
     using Logger;
+    using SexyFishHorse.CitiesSkylines.Ragnarok.Configuration;
 
     public class RagnarokLogger : ILogger
     {
@@ -16,6 +17,7 @@
             try
             {
                 logger = LogManager.Instance.GetOrCreateLogger(RagnarokUserMod.ModName);
+                Enabled = ModConfig.Instance.GetSetting<bool>(SettingKeys.EnableLogging);
             }
             catch (Exception ex)
             {
