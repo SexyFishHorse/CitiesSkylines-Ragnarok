@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading;
+    using ICities;
     using SexyFishHorse.CitiesSkylines.Logger;
     using SexyFishHorse.CitiesSkylines.Ragnarok.Configuration;
     using SexyFishHorse.CitiesSkylines.Ragnarok.Model;
@@ -26,9 +27,20 @@
             }
         }
 
-        public static void HandlePauseOnDisaster(ILogger logger)
+        public static void HandlePauseOnDisaster(ILogger logger, DisasterType disasterType)
         {
-            if (ModConfig.Instance.GetSetting<bool>(SettingKeys.PauseOnDisasterStart))
+            logger.Info("Handle pause: " + disasterType);
+            var autoPauseDisasters = new HashSet<DisasterType>
+            {
+                DisasterType.Earthquake,
+                DisasterType.MeteorStrike,
+                DisasterType.Sinkhole,
+                DisasterType.Tornado,
+                DisasterType.Tsunami,
+                DisasterType.ThunderStorm,
+            };
+
+            if (ModConfig.Instance.GetSetting<bool>(SettingKeys.PauseOnDisasterStart) && autoPauseDisasters.Contains(disasterType))
             {
                 new Thread(
                     () =>

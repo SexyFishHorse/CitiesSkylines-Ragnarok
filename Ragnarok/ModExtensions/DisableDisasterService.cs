@@ -86,7 +86,7 @@
                     return;
                 }
 
-                GenericDisasterServices.HandlePauseOnDisaster(logger);
+                GenericDisasterServices.HandlePauseOnDisaster(logger, info.type);
             }
             catch (Exception ex)
             {
