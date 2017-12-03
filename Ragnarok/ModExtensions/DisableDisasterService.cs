@@ -4,20 +4,34 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Reflection;
-    using Configuration;
     using ICities;
-    using Infrastructure.Extensions;
     using JetBrains.Annotations;
-    using Logger;
-    using Logging;
+    using SexyFishHorse.CitiesSkylines.Infrastructure.Extensions;
+    using SexyFishHorse.CitiesSkylines.Logger;
+    using SexyFishHorse.CitiesSkylines.Ragnarok.Configuration;
+    using SexyFishHorse.CitiesSkylines.Ragnarok.Logging;
     using SexyFishHorse.CitiesSkylines.Ragnarok.Services;
 
     [UsedImplicitly]
     public class DisableDisasterService : IDisasterBase, ILoadingExtension
     {
+        private static readonly Dictionary<DisasterType, DisasterSettingKeys> DisasterSettingDictionary =
+            new Dictionary<DisasterType, DisasterSettingKeys>
+            {
+                { DisasterType.Earthquake, SettingKeys.Earthquakes },
+                { DisasterType.ForestFire, SettingKeys.ForestFires },
+                { DisasterType.MeteorStrike, SettingKeys.Meteors },
+                { DisasterType.Sinkhole, SettingKeys.Sinkholes },
+                { DisasterType.StructureCollapse, SettingKeys.StructureCollapses },
+                { DisasterType.StructureFire, SettingKeys.StructureFires },
+                { DisasterType.ThunderStorm, SettingKeys.Thunderstorms },
+                { DisasterType.Tornado, SettingKeys.Tornadoes },
+                { DisasterType.Tsunami, SettingKeys.Tsunamis }
+            };
+
         private readonly ILogger logger;
 
-        private FieldInfo convertionField;
+        private FieldInfo conversionField;
 
         private DisasterWrapper disasterWrapper;
 
@@ -35,11 +49,12 @@
 
                 disasterWrapper = (DisasterWrapper)disaster;
 
-                convertionField = disasterWrapper
-                    .GetType()
-                    .GetField("m_DisasterTypeToInfoConversion", BindingFlags.NonPublic | BindingFlags.Instance);
+                conversionField = disasterWrapper.GetType()
+                                                 .GetField(
+                                                     "m_DisasterTypeToInfoConversion",
+                                                     BindingFlags.NonPublic | BindingFlags.Instance);
 
-                SetConvertionTable();
+                SetConversionTable();
             }
             catch (Exception ex)
             {
@@ -83,7 +98,7 @@
 
         public override void OnDisasterCreated(ushort disasterId)
         {
-            SetConvertionTable();
+            SetConversionTable();
 
             var info = disasterWrapper.GetDisasterSettings(disasterId);
 
@@ -118,7 +133,7 @@
 
         public override void OnDisasterStarted(ushort disasterId)
         {
-            SetConvertionTable();
+            SetConversionTable();
 
             var info = disasterWrapper.GetDisasterSettings(disasterId);
 
@@ -187,57 +202,35 @@
         {
         }
 
-        private DisasterSettingKeys GetSettingKeysForDisasterType(DisasterType type)
+        private static DisasterSettingKeys GetSettingKeysForDisasterType(DisasterType type)
         {
-            switch (type)
-            {
-                case DisasterType.Earthquake:
-                    return SettingKeys.Earthquakes;
-                case DisasterType.ForestFire:
-                    return SettingKeys.ForestFires;
-                case DisasterType.MeteorStrike:
-                    return SettingKeys.Meteors;
-                case DisasterType.Sinkhole:
-                    return SettingKeys.Sinkholes;
-                case DisasterType.StructureCollapse:
-                    return SettingKeys.StructureCollapses;
-                case DisasterType.StructureFire:
-                    return SettingKeys.StructureFires;
-                case DisasterType.ThunderStorm:
-                    return SettingKeys.Thunderstorms;
-                case DisasterType.Tornado:
-                    return SettingKeys.Tornadoes;
-                case DisasterType.Tsunami:
-                    return SettingKeys.Tsunamis;
-                default:
-                    return null;
-            }
+            return DisasterSettingDictionary.ContainsKey(type) ? DisasterSettingDictionary[type] : null;
         }
 
-        private void SetConvertionTable()
+        private void SetConversionTable()
         {
-            var fieldValue = (Dictionary<DisasterType, DisasterInfo>)convertionField.GetValue(disasterWrapper);
+            var fieldValue = (Dictionary<DisasterType, DisasterInfo>)conversionField.GetValue(disasterWrapper);
 
-            if ((fieldValue == null) || !fieldValue.Any() || fieldValue.Any(x => x.Value == null))
+            if (fieldValue == null || !fieldValue.Any() || fieldValue.Any(x => x.Value == null))
             {
-                logger.Info("DDS: Rebuilding convertion table");
-                var convertionDictionary = new Dictionary<DisasterType, DisasterInfo>();
-                convertionDictionary[DisasterType.Earthquake] = DisasterManager.FindDisasterInfo<EarthquakeAI>();
-                convertionDictionary[DisasterType.ForestFire] = DisasterManager.FindDisasterInfo<ForestFireAI>();
-                convertionDictionary[DisasterType.MeteorStrike] = DisasterManager.FindDisasterInfo<MeteorStrikeAI>();
-                convertionDictionary[DisasterType.ThunderStorm] = DisasterManager.FindDisasterInfo<ThunderStormAI>();
-                convertionDictionary[DisasterType.Tornado] = DisasterManager.FindDisasterInfo<TornadoAI>();
-                convertionDictionary[DisasterType.Tsunami] = DisasterManager.FindDisasterInfo<TsunamiAI>();
-                convertionDictionary[DisasterType.StructureCollapse] = DisasterManager.FindDisasterInfo<StructureCollapseAI>();
-                convertionDictionary[DisasterType.StructureFire] = DisasterManager.FindDisasterInfo<StructureFireAI>();
-                convertionDictionary[DisasterType.Sinkhole] = DisasterManager.FindDisasterInfo<SinkholeAI>();
+                logger.Info("DDS: Rebuilding conversion table");
+                var conversionDictionary = new Dictionary<DisasterType, DisasterInfo>();
+                conversionDictionary[DisasterType.Earthquake] = DisasterManager.FindDisasterInfo<EarthquakeAI>();
+                conversionDictionary[DisasterType.ForestFire] = DisasterManager.FindDisasterInfo<ForestFireAI>();
+                conversionDictionary[DisasterType.MeteorStrike] = DisasterManager.FindDisasterInfo<MeteorStrikeAI>();
+                conversionDictionary[DisasterType.ThunderStorm] = DisasterManager.FindDisasterInfo<ThunderStormAI>();
+                conversionDictionary[DisasterType.Tornado] = DisasterManager.FindDisasterInfo<TornadoAI>();
+                conversionDictionary[DisasterType.Tsunami] = DisasterManager.FindDisasterInfo<TsunamiAI>();
+                conversionDictionary[DisasterType.StructureCollapse] = DisasterManager.FindDisasterInfo<StructureCollapseAI>();
+                conversionDictionary[DisasterType.StructureFire] = DisasterManager.FindDisasterInfo<StructureFireAI>();
+                conversionDictionary[DisasterType.Sinkhole] = DisasterManager.FindDisasterInfo<SinkholeAI>();
 
-                if (convertionDictionary.Any(x => x.Value == null))
+                if (conversionDictionary.Any(x => x.Value == null))
                 {
                     logger.Info("DDS: Contains null values");
                 }
 
-                convertionField.SetValue(disasterWrapper, convertionDictionary);
+                conversionField.SetValue(disasterWrapper, conversionDictionary);
             }
         }
 

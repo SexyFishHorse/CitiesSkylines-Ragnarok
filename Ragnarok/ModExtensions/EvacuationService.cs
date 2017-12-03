@@ -9,7 +9,7 @@
     using JetBrains.Annotations;
     using Logger;
     using Logging;
-    using Object = UnityEngine.Object;
+    using UnityObject = UnityEngine.Object;
 
     [UsedImplicitly]
     public class EvacuationService : IDisasterBase
@@ -131,7 +131,7 @@
                 return;
             }
 
-            phasePanel = Object.FindObjectOfType<WarningPhasePanel>();
+            phasePanel = UnityObject.FindObjectOfType<WarningPhasePanel>();
             evacuatingField = phasePanel.GetType().GetField("m_isEvacuating", BindingFlags.NonPublic | BindingFlags.Instance);
         }
 
