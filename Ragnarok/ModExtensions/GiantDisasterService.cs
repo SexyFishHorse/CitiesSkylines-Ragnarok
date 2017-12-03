@@ -2,11 +2,13 @@
 {
     using ColossalFramework.UI;
     using ICities;
+    using JetBrains.Annotations;
     using SexyFishHorse.CitiesSkylines.Infrastructure.Extensions;
     using SexyFishHorse.CitiesSkylines.Ragnarok.Logging;
-    using UnityEngine;
     using ILogger = SexyFishHorse.CitiesSkylines.Logger.ILogger;
+    using UnityObject = UnityEngine.Object;
 
+    [UsedImplicitly]
     public class GiantDisasterService : ILoadingExtension
     {
         private readonly ILogger logger;
@@ -29,11 +31,11 @@
 
             logger.Info("Changing max disaster spawn intensity");
 
-            var optionPanel = Object.FindObjectOfType<DisastersOptionPanel>();
+            var optionPanel = UnityObject.FindObjectOfType<DisastersOptionPanel>();
             var slider = optionPanel.GetComponentInChildren<UISlider>();
             slider.maxValue = byte.MaxValue;
 
-            logger.Info("Max disaster spawn intensity changedto 25");
+            logger.Info("Max disaster spawn intensity changed to 25.5");
         }
 
         public void OnLevelUnloading()
