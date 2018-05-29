@@ -9,13 +9,13 @@
     public class DisableDisasterServiceTest
     {
         [Fact]
-        public void DisasterWrapperShouldHavePrivateFieldForDisasterTypeInfoConvertion()
+        public void DisasterWrapperShouldHavePrivateFieldForDisasterTypeInfoConversion()
         {
-            var convertionField = typeof(DisasterWrapper).GetField(
+            var conversionField = typeof(DisasterWrapper).GetField(
                 "m_DisasterTypeToInfoConversion",
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
-            convertionField.Should().NotBeNull();
+            conversionField.Should().NotBeNull();
         }
     }
 }
