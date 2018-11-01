@@ -34,6 +34,7 @@
             var optionPanel = UnityObject.FindObjectOfType<DisastersOptionPanel>();
             var slider = optionPanel.GetComponentInChildren<UISlider>();
             slider.maxValue = byte.MaxValue;
+            slider.minValue = byte.MinValue;
 
             logger.Info("Max disaster spawn intensity changed to 25.5");
         }

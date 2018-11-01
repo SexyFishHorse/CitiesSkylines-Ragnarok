@@ -14,9 +14,9 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
 
     public class OptionsPanelManager : IOptionsPanelManager
     {
-        private const byte MaximumIntensityValue = 99;
+        private const byte MaximumIntensityValue = byte.MaxValue;
 
-        private const byte MinimumIntensityValue = 0;
+        private const byte MinimumIntensityValue = byte.MinValue;
 
         private static readonly string[] AutoEvacuateValues =
         {
@@ -86,10 +86,6 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
         private void AddMaxIntensitySlider(IStronglyTypedUIHelper group, string disasterName, string impactSettingKey)
         {
             var setting = ModConfig.Instance.GetSetting<byte>(impactSettingKey);
-            if (setting > MaximumIntensityValue)
-            {
-                setting = MaximumIntensityValue;
-            }
 
             var slider =
                 group.AddSlider(
@@ -119,7 +115,7 @@ namespace SexyFishHorse.CitiesSkylines.Ragnarok.Configuration
             UpdateMaxIntensityLabel(impactSettingKey, disasterName, setting);
         }
 
-        private void AddProbabilitySlider(IStronglyTypedUIHelper disasterGroup, string settingKey, DisasterInfo disasterInfo)
+        private static void AddProbabilitySlider(IStronglyTypedUIHelper disasterGroup, string settingKey, DisasterInfo disasterInfo)
         {
             var probability = disasterInfo.m_finalRandomProbability;
             if (ModConfig.Instance.HasSetting(settingKey))
